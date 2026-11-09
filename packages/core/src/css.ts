@@ -54,7 +54,9 @@ export const CORE_CSS = `
 .bl-cgroup-dim{opacity:.6}
 .bl-cgroup-out{opacity:0;transform:scale(.97)}
 .bl-clinks{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.bl-clinks line{stroke:var(--bl-star);stroke-width:1.2;stroke-linecap:round;opacity:.5;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .55s cubic-bezier(.16,1,.3,1)}
+.bl-clinks line{stroke:color-mix(in srgb,var(--bl-star) 75%,#fff);stroke-width:calc(1.8px*var(--bl-star-scale,1));stroke-linecap:round;opacity:.72;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .6s cubic-bezier(.16,1,.3,1),opacity .6s ease}
+.bl-clinks line.bl-link-halo{stroke:var(--bl-star);stroke-width:calc(9px*var(--bl-star-scale,1));opacity:.13}
+.bl-clinks line.bl-fresh{opacity:1;stroke-width:calc(2.4px*var(--bl-star-scale,1))}
 .bl-clinks line.bl-drawn{stroke-dashoffset:0}
 .bl-star{position:absolute;width:0;height:0;--s:calc(var(--bl-size)*.1*var(--m,1)*var(--bl-star-scale,1));opacity:0;transition:opacity .45s ease}
 .bl-star>i,.bl-star-glyph{position:absolute;left:0;top:0;pointer-events:none}
@@ -146,7 +148,10 @@ export const CORE_CSS = `
 .bl-glow[data-mode="orbit"] .bl-orbit{display:block}
 .bl-glow[data-mode="orbit"] .bl-glow-layer{opacity:.22}
 .bl-glow[data-mode="orbit"] .bl-glow-spot{display:none}
-.bl-orbit-spin{position:absolute;left:50%;top:50%;width:150cqmax;height:150cqmax;margin:-75cqmax 0 0 -75cqmax;background:conic-gradient(from 0deg,transparent 0deg,var(--bl-glow-b) 30deg,var(--bl-glow-a) 85deg,var(--bl-glow-light,#fff) 140deg,var(--bl-glow-light,#fff) 176deg,transparent 180deg,transparent 360deg);will-change:transform}
+.bl-orbit{opacity:.85}
+.bl-orbit-drift,.bl-orbit-beat{position:absolute;left:50%;top:50%;width:0;height:0;will-change:transform}
+.bl-orbit-wide{opacity:0;background:conic-gradient(from -40deg,transparent 0deg,color-mix(in srgb,var(--bl-glow-b) 60%,transparent) 50deg,var(--bl-glow-a) 140deg,var(--bl-glow-light,#fff) 205deg,var(--bl-glow-light,#fff) 214deg,transparent 220deg,transparent 360deg)!important}
+.bl-orbit-spin{position:absolute;left:0;top:0;width:150cqmax;height:150cqmax;margin:-75cqmax 0 0 -75cqmax;background:conic-gradient(from 0deg,transparent 0deg,var(--bl-glow-b) 30deg,var(--bl-glow-a) 85deg,var(--bl-glow-light,#fff) 140deg,var(--bl-glow-light,#fff) 176deg,transparent 180deg,transparent 360deg);will-change:transform}
 .bl-glow-spot{position:absolute;left:0;top:0;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--bl-glow-a) 80%,#fff) 0,var(--bl-glow-a) 12%,color-mix(in srgb,var(--bl-glow-a) 25%,transparent) 34%,transparent 62%);opacity:.26;mix-blend-mode:screen;will-change:transform}
 .bl-glow-spot-b{background:radial-gradient(circle,color-mix(in srgb,var(--bl-glow-b) 80%,#fff) 0,var(--bl-glow-b) 12%,color-mix(in srgb,var(--bl-glow-b) 25%,transparent) 34%,transparent 62%)}
 `;

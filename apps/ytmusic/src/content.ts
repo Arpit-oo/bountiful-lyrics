@@ -31,6 +31,10 @@ const ICONS = {
   gear: svg("M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5Zm8.5 5-.9-.5a7.6 7.6 0 0 0 0-2l.9-.5a1 1 0 0 0 .4-1.3l-1.6-2.8a1 1 0 0 0-1.3-.4l-1 .5a7.6 7.6 0 0 0-1.7-1V4a1 1 0 0 0-1-1h-3.2a1 1 0 0 0-1 1v1.5a7.6 7.6 0 0 0-1.7 1l-1-.5a1 1 0 0 0-1.3.4L3.5 9.2a1 1 0 0 0 .4 1.3l.9.5a7.6 7.6 0 0 0 0 2l-.9.5a1 1 0 0 0-.4 1.3l1.6 2.8a1 1 0 0 0 1.3.4l1-.5a7.6 7.6 0 0 0 1.7 1V20a1 1 0 0 0 1 1h3.2a1 1 0 0 0 1-1v-1.5a7.6 7.6 0 0 0 1.7-1l1 .5a1 1 0 0 0 1.3-.4l1.6-2.8a1 1 0 0 0-.4-1.3Z"),
   full: svg("M3 3h7v2H5v5H3zM14 3h7v7h-2V5h-5zM3 14h2v5h5v2H3zM19 14h2v7h-7v-2h5z"),
   close: svg("M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12 19 17.6 17.6 19 12 13.4 6.4 19 5 17.6 10.6 12 5 6.4z"),
+  volume: svg("M3 9h4l5-4v14l-5-4H3zM15.5 8.5a5 5 0 0 1 0 7l-1.4-1.4a3 3 0 0 0 0-4.2zM18.4 5.6a9 9 0 0 1 0 12.8L17 17a7 7 0 0 0 0-9.9z"),
+  muted: svg("M3 9h4l5-4v14l-5-4H3zM15.3 9.7l1.4-1.4L19 10.6l2.3-2.3 1.4 1.4-2.3 2.3 2.3 2.3-1.4 1.4-2.3-2.3-2.3 2.3-1.4-1.4 2.3-2.3z"),
+  queue: svg("M3 5h12v2H3zm0 4h12v2H3zm0 4h8v2H3zm13 0v6l5-3z"),
+  lyrics: svg("M4 5h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4z"),
 };
 
 const FAB_CSS = `
@@ -38,6 +42,21 @@ const FAB_CSS = `
 .bl-fab:hover{background:rgba(255,255,255,.26)}
 .bl-fab svg{width:20px;height:20px;fill:currentColor}
 .bl-fab:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.bl-overlay[data-mode="fullscreen"] .bl-close{right:auto;left:18px;flex-direction:row-reverse}
+.bl-queue{position:absolute;left:0;top:0;bottom:0;z-index:4;width:min(380px,86vw);display:flex;flex-direction:column;background:rgba(14,14,18,.86);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-right:1px solid rgba(255,255,255,.08);transform:translateX(-102%);transition:transform .35s cubic-bezier(.16,1,.3,1);font-family:"BL Jakarta","Segoe UI",sans-serif}
+.bl-queue.bl-open{transform:none}
+.bl-queue-head{display:flex;align-items:center;justify-content:space-between;padding:22px 20px 12px}
+.bl-queue-head h3{margin:0;font-size:13px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6)}
+.bl-queue-list{flex:1;overflow-y:auto;padding:0 10px 110px;scrollbar-width:thin}
+.bl-queue-item{display:flex;align-items:center;gap:12px;width:100%;padding:8px 10px;border:0;border-radius:12px;background:transparent;color:#fff;text-align:left;cursor:pointer;transition:background-color .15s ease}
+.bl-queue-item:hover{background:rgba(255,255,255,.08)}
+.bl-queue-item[aria-current="true"]{background:rgba(255,255,255,.12)}
+.bl-queue-item img{width:44px;height:44px;flex:none;border-radius:7px;object-fit:cover;background:#222}
+.bl-queue-text{min-width:0;flex:1}
+.bl-queue-text b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bl-queue-text span{display:block;font-size:12.5px;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bl-queue-time{font-size:12px;color:rgba(255,255,255,.5);font-variant-numeric:tabular-nums}
+.bl-queue-empty{padding:20px;font-size:13.5px;line-height:1.55;color:rgba(255,255,255,.55)}
 `;
 
 interface PageTrack {
@@ -111,6 +130,20 @@ class App {
   private readonly statusEl: HTMLElement;
   private readonly playBtn: HTMLButtonElement;
   private readonly lyricsBtn: HTMLButtonElement;
+  private readonly miniArt: HTMLImageElement;
+  private readonly miniTitle: HTMLElement;
+  private readonly miniArtist: HTMLElement;
+  private readonly seek: HTMLInputElement;
+  private readonly elapsedEl: HTMLElement;
+  private readonly durationEl: HTMLElement;
+  private readonly volume: HTMLInputElement;
+  private readonly muteBtn: HTMLButtonElement;
+  private readonly queue: HTMLElement;
+  private readonly queueList: HTMLElement;
+  private readonly toast: HTMLElement;
+  private seeking = false;
+  private lastUi = 0;
+  private queueTimer: ReturnType<typeof setInterval> | null = null;
   private readonly cache = new Map<string, Lyrics | null>();
   private video: HTMLVideoElement | null = null;
   private lyrics: Lyrics | null = null;
@@ -154,26 +187,69 @@ class App {
     this.statusEl.className = "bl-status";
     this.player.append(this.artEl, this.titleEl, this.artistEl, this.statusEl);
 
+    // Up next: YouTube Music's own queue, so you can switch songs without leaving the lyrics.
+    this.queue = div("bl-queue", this.root);
+    const qHead = div("bl-queue-head", this.queue);
+    qHead.append(Object.assign(document.createElement("h3"), { textContent: "Up next" }));
+    iconButton("bl-icon-btn bl-icon-sm", "Hide up next", ICONS.close, qHead, () => this.toggleQueue(false));
+    this.queueList = div("bl-queue-list", this.queue);
+
+    // Bottom bar: now playing | transport + seek | volume, queue, lyrics, settings, fullscreen.
     const chrome_ = div("bl-chrome", this.root);
-    iconButton("bl-icon-btn", "Previous", ICONS.back, chrome_, () => this.clickBar(".previous-button"));
-    this.playBtn = iconButton("bl-icon-btn bl-play", "Play or pause", ICONS.play, chrome_, () => this.togglePlay());
-    iconButton("bl-icon-btn", "Next", ICONS.next, chrome_, () => this.clickBar(".next-button"));
-    this.lyricsBtn = document.createElement("button");
-    this.lyricsBtn.className = "bl-pill";
-    this.lyricsBtn.textContent = "Lyrics";
-    this.lyricsBtn.addEventListener("click", () => {
+    const left = div("bl-chrome-left", chrome_);
+    this.miniArt = document.createElement("img");
+    this.miniArt.className = "bl-mini-art";
+    this.miniArt.alt = "";
+    left.appendChild(this.miniArt);
+    const meta = div("bl-mini-meta", left);
+    this.miniTitle = div("bl-mini-title", meta);
+    this.miniArtist = div("bl-mini-artist", meta);
+    const center = div("bl-chrome-center", chrome_);
+    const transport = div("bl-transport", center);
+    iconButton("bl-icon-btn", "Previous", ICONS.back, transport, () => this.clickBar(".previous-button"));
+    this.playBtn = iconButton("bl-icon-btn bl-play", "Play or pause", ICONS.play, transport, () => this.togglePlay());
+    iconButton("bl-icon-btn", "Next", ICONS.next, transport, () => this.clickBar(".next-button"));
+    const seekRow = div("bl-seek-row", center);
+    this.elapsedEl = div("bl-time", seekRow);
+    this.seek = this.range("bl-seek", "Seek", seekRow);
+    this.durationEl = div("bl-time", seekRow);
+    this.seek.addEventListener("input", () => {
+      this.seeking = true;
+      this.paintRange(this.seek);
+    });
+    this.seek.addEventListener("change", () => {
+      if (this.video && Number.isFinite(this.video.duration)) this.video.currentTime = (Number(this.seek.value) / 1000) * this.video.duration;
+      this.seeking = false;
+    });
+    const right = div("bl-chrome-right", chrome_);
+    const vol = div("bl-volume", right);
+    this.muteBtn = iconButton("bl-icon-btn bl-icon-sm", "Mute", ICONS.volume, vol, () => {
+      if (this.video) this.video.muted = !this.video.muted;
+      this.paintVolume();
+    });
+    this.volume = this.range("bl-vol", "Volume", vol);
+    this.volume.addEventListener("input", () => {
+      if (this.video) {
+        this.video.volume = Number(this.volume.value) / 1000;
+        this.video.muted = false;
+      }
+      this.paintVolume();
+    });
+    iconButton("bl-icon-btn bl-icon-sm", "Up next (Q)", ICONS.queue, right, () => this.toggleQueue());
+    this.lyricsBtn = iconButton("bl-icon-btn bl-icon-sm bl-toggle-btn", "Show lyrics (L)", ICONS.lyrics, right, () => {
       this.showLyrics = !this.showLyrics;
       this.renderView();
     });
-    chrome_.append(this.lyricsBtn);
-    iconButton("bl-icon-btn", "Settings", ICONS.gear, chrome_, () => openSettings(this.root, this.settings, (patch) => this.updateSettings(patch), null));
-    iconButton("bl-icon-btn", "Full screen", ICONS.full, chrome_, () => this.toggleFullscreen());
-    iconButton("bl-icon-btn", "Close", ICONS.close, div("bl-close", this.root), () => this.close());
+    iconButton("bl-icon-btn bl-icon-sm", "Settings (S)", ICONS.gear, right, () => this.openSettings());
+    iconButton("bl-icon-btn bl-icon-sm", "Full screen (F)", ICONS.full, right, () => this.toggleFullscreen());
+    const closeHolder = div("bl-close", this.root);
+    closeHolder.append(Object.assign(document.createElement("span"), { className: "bl-close-hint", textContent: "Esc · back to YouTube Music" }));
+    iconButton("bl-icon-btn", "Back to YouTube Music (Esc)", ICONS.close, closeHolder, () => this.close());
+    this.toast = div("bl-toast", this.root);
+    this.root.dataset.mode = "fullscreen";
 
     this.root.addEventListener("mousemove", () => this.wake());
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && this.isOpen && !document.fullscreenElement) this.close();
-    });
+    document.addEventListener("keydown", this.onKey, true);
     chrome.runtime.onMessage.addListener((message: { type?: string }) => {
       if (message.type === "toggle") this.toggle();
     });
@@ -194,6 +270,134 @@ class App {
     this.stage.applySettings(this.settings);
     this.stage.setBeats([]);
   }
+
+  private openSettings(): void {
+    openSettings(this.root, this.settings, (patch) => this.updateSettings(patch), null);
+  }
+
+  private range(cls: string, label: string, parent: Node): HTMLInputElement {
+    const i = document.createElement("input");
+    i.type = "range";
+    i.className = cls;
+    i.min = "0";
+    i.max = "1000";
+    i.setAttribute("aria-label", label);
+    parent.appendChild(i);
+    return i;
+  }
+
+  private paintRange(input: HTMLInputElement): void {
+    input.style.setProperty("--bl-fill", `${Number(input.value) / 10}%`);
+  }
+
+  private paintVolume(): void {
+    const v = this.video;
+    const level = v ? (v.muted ? 0 : v.volume) : 1;
+    if (this.root.getRootNode() instanceof ShadowRoot && (this.root.getRootNode() as ShadowRoot).activeElement !== this.volume) this.volume.value = String(Math.round(level * 1000));
+    this.paintRange(this.volume);
+    this.muteBtn.innerHTML = level <= 0.001 ? ICONS.muted : ICONS.volume;
+  }
+
+  private paintSeek(): void {
+    const v = this.video;
+    const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+    if (!v || !Number.isFinite(v.duration)) return;
+    this.durationEl.textContent = fmt(v.duration);
+    if (this.seeking) return;
+    this.elapsedEl.textContent = fmt(v.currentTime);
+    this.seek.value = String(Math.round((v.currentTime / v.duration) * 1000));
+    this.paintRange(this.seek);
+  }
+
+  private showToast(message: string): void {
+    this.toast.textContent = message;
+    this.toast.classList.add("bl-toast-on");
+    setTimeout(() => this.toast.classList.remove("bl-toast-on"), 2200);
+  }
+
+  /** Mirrors YouTube Music's queue (including autoplay suggestions). Clicking a row plays it. */
+  private renderQueue(): void {
+    const items = [...document.querySelectorAll<HTMLElement>("ytmusic-player-queue ytmusic-player-queue-item")];
+    this.queueList.replaceChildren();
+    if (items.length === 0) {
+      this.queueList.append(Object.assign(document.createElement("p"), { className: "bl-queue-empty", textContent: "Nothing queued yet. Open the YouTube Music player once (click the song in the bottom bar) and Up next will appear here." }));
+      return;
+    }
+    for (const item of items) {
+      const row = document.createElement("button");
+      row.className = "bl-queue-item";
+      row.setAttribute("aria-current", String(item.hasAttribute("selected") || item.getAttribute("play-button-state") === "playing" || item.getAttribute("play-button-state") === "paused"));
+      const thumb = item.querySelector<HTMLImageElement>("img")?.src;
+      const img = document.createElement("img");
+      img.alt = "";
+      if (thumb && /^https:\/\/(i\.ytimg\.com|lh3\.googleusercontent\.com|yt3\.googleusercontent\.com)\//.test(thumb)) img.src = thumb;
+      const text = div("bl-queue-text", row);
+      text.append(Object.assign(document.createElement("b"), { textContent: item.querySelector(".song-title")?.textContent?.trim() ?? "" }), Object.assign(document.createElement("span"), { textContent: item.querySelector(".byline")?.textContent?.trim() ?? "" }));
+      row.prepend(img);
+      row.append(Object.assign(document.createElement("span"), { className: "bl-queue-time", textContent: item.querySelector(".duration")?.textContent?.trim() ?? "" }));
+      row.addEventListener("click", () => {
+        (item.querySelector<HTMLElement>(".song-info") ?? item.querySelector<HTMLElement>("ytmusic-play-button-renderer") ?? item).click();
+        setTimeout(() => this.renderQueue(), 700);
+      });
+      this.queueList.append(row);
+    }
+  }
+
+  private toggleQueue(force?: boolean): void {
+    const open = force ?? !this.queue.classList.contains("bl-open");
+    this.queue.classList.toggle("bl-open", open);
+    if (this.queueTimer) clearInterval(this.queueTimer);
+    this.queueTimer = null;
+    if (open) {
+      this.renderQueue();
+      this.queueTimer = setInterval(() => this.renderQueue(), 4000);
+    }
+  }
+
+  private readonly onKey = (e: KeyboardEvent): void => {
+    if (e.ctrlKey || e.metaKey) return;
+    if (e.altKey && (e.key === "l" || e.key === "L")) {
+      e.preventDefault();
+      this.toggle();
+      return;
+    }
+    if (!this.isOpen || e.altKey) return;
+    const path = e.composedPath()[0] as HTMLElement | undefined;
+    if (path && /^(INPUT|SELECT|TEXTAREA)$/.test(path.tagName) && e.key !== "Escape") return;
+    if (this.root.querySelector(".bl-scrim")) return;
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    const styles = ["constellation", "garden", "fisheye", "codestyle"] as const;
+    let used = true;
+    if (key === "Escape") {
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else this.close();
+    } else if (key === " ") this.togglePlay();
+    else if (key === "s" || key === ",") this.openSettings();
+    else if (key === "q") this.toggleQueue();
+    else if (key === "f") this.toggleFullscreen();
+    else if (key === "l") {
+      this.showLyrics = !this.showLyrics;
+      this.renderView();
+    } else if (key === "b") this.updateSettings({ background: this.settings.background === "art" ? "auto" : "art" });
+    else if (key >= "1" && key <= "4") {
+      const style = styles[Number(key) - 1]!;
+      this.updateSettings({ style });
+      this.showToast(style[0]!.toUpperCase() + style.slice(1));
+    } else if ((key === "ArrowLeft" || key === "ArrowRight") && this.video) this.video.currentTime = Math.max(0, this.video.currentTime + (key === "ArrowLeft" ? -5 : 5));
+    else if ((key === "ArrowUp" || key === "ArrowDown") && this.video) {
+      this.video.volume = Math.min(1, Math.max(0, this.video.volume + (key === "ArrowUp" ? 0.05 : -0.05)));
+      this.paintVolume();
+      this.showToast(`Volume ${Math.round(this.video.volume * 100)}%`);
+    } else if (key === "m" && this.video) {
+      this.video.muted = !this.video.muted;
+      this.paintVolume();
+    } else used = false;
+    if (used) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.wake();
+    }
+  };
 
   private clickBar(selector: string): void {
     document.querySelector<HTMLElement>(`${bar} ${selector}`)?.click();
@@ -253,8 +457,12 @@ class App {
     this.forceSync();
     this.titleEl.textContent = track.title;
     this.artistEl.textContent = track.artist;
-    if (track.artUrl) this.artEl.src = track.artUrl;
-    else this.artEl.removeAttribute("src");
+    this.miniTitle.textContent = track.title;
+    this.miniArtist.textContent = track.artist;
+    for (const img of [this.artEl, this.miniArt]) {
+      if (track.artUrl) img.src = track.artUrl;
+      else img.removeAttribute("src");
+    }
     this.stage.setArt(track.artUrl);
     this.lyrics = null;
     this.stage.setLyrics(null);
@@ -324,6 +532,11 @@ class App {
   private readonly tick = (): void => {
     if (!this.isOpen) return;
     this.stage.update(this.clock.position());
+    const now = performance.now();
+    if (now - this.lastUi > 250) {
+      this.lastUi = now;
+      this.paintSeek();
+    }
     this.frame = requestAnimationFrame(this.tick);
   };
 
@@ -337,8 +550,13 @@ class App {
     this.root.hidden = false;
     this.forceSync();
     this.renderView();
+    this.paintVolume();
     this.wake();
     this.frame = requestAnimationFrame(this.tick);
+    if (!sessionStorage.getItem("bl-hinted")) {
+      sessionStorage.setItem("bl-hinted", "1");
+      this.showToast("Esc to go back · Alt+L to reopen · Q for up next");
+    }
   }
 
   private close(): void {
@@ -347,6 +565,7 @@ class App {
     cancelAnimationFrame(this.frame);
     if (this.idleTimer) clearTimeout(this.idleTimer);
     if (document.fullscreenElement) void document.exitFullscreen();
+    this.toggleQueue(false);
   }
 }
 

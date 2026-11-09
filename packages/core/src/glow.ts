@@ -26,6 +26,10 @@ export class Glow {
   private readonly edges: Record<"top" | "right" | "bottom" | "left", { el: HTMLElement; line: HTMLElement; comet: HTMLElement }>;
   private beatCount = 0;
   private readonly orbit: HTMLElement[];
+  private readonly orbitRings: HTMLElement[] = [];
+  private readonly orbitWide: HTMLElement[] = [];
+  private readonly orbitDrift: HTMLElement[] = [];
+  private driftRuns: Animation[] = [];
   private orbitAngle = 0;
   private orbitRun: Animation[] = [];
   /** Called on every beat pulse (true on the downbeat). */
@@ -51,9 +55,16 @@ export class Glow {
     };
     this.edges = { top: edge("top"), right: edge("right"), bottom: edge("bottom"), left: edge("left") };
     // Orbit: half the frame lit, stepping around the edge with each beat.
+    // ring > drift (always turning) > beat (kicks forward on each beat) > arc + wide flash arc.
     this.orbit = ["bl-orbit bl-orbit-bloom", "bl-orbit"].map((cls) => {
       const ring = el("div", cls, this.el);
-      return el("div", "bl-orbit-spin", ring);
+      this.orbitRings.push(ring);
+      const drift = el("div", "bl-orbit-drift", ring);
+      this.orbitDrift.push(drift);
+      const beat = el("div", "bl-orbit-beat", drift);
+      el("div", "bl-orbit-spin", beat);
+      this.orbitWide.push(el("div", "bl-orbit-spin bl-orbit-wide", beat));
+      return beat;
     });
     this.resize = new ResizeObserver(() => this.runSpots());
     this.resize.observe(this.el);
@@ -130,7 +141,14 @@ export class Glow {
     this.runSpots();
     this.orbitRun.forEach((r) => r.cancel());
     this.orbitRun = [];
-    if (mode === "orbit") this.stepOrbit(0, true);
+    this.driftRuns.forEach((r) => r.cancel());
+    this.driftRuns = [];
+    if (mode === "orbit") {
+      this.stepOrbit(0, true);
+      if (!reducedMotion()) {
+        this.driftRuns = this.orbitDrift.map((d) => d.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], { duration: 16000, iterations: Infinity, easing: "linear" }));
+      }
+    }
     if (mode === "idle") {
       this.layerB.style.opacity = "";
       this.running.push(this.layerB.animate([{ opacity: 0 }, { opacity: 1 }], { duration: FADE_MS, iterations: Infinity, direction: "alternate", easing: "ease-in-out" }));
@@ -165,7 +183,15 @@ export class Glow {
     if (this.mode === "orbit") {
       const n = this.beatCount++;
       this.onBeat?.(strong && n % 4 === 0);
-      this.stepOrbit(strong && n % 4 === 0 ? 90 : 45, false);
+      const down = strong && n % 4 === 0;
+      this.stepOrbit(down ? 70 : 32, false);
+      if (!reducedMotion()) {
+        // The beat lands: the glow flares and the arc briefly stretches, then settles.
+        const [bloom, crisp] = this.orbitRings;
+        bloom?.animate([{ opacity: 1 }, { opacity: 0.85 }], { duration: down ? 620 : 420, easing: "cubic-bezier(.2,.7,.3,1)" });
+        crisp?.animate([{ filter: "brightness(1.7)" }, { filter: "brightness(1)" }], { duration: down ? 620 : 420, easing: "cubic-bezier(.2,.7,.3,1)" });
+        for (const wide of this.orbitWide) wide.animate([{ opacity: down ? 0.9 : 0.6 }, { opacity: 0 }], { duration: down ? 700 : 460, easing: "cubic-bezier(.2,.7,.3,1)" });
+      }
     } else {
       this.pulse(strong);
     }
@@ -183,7 +209,7 @@ export class Glow {
     for (const spin of this.orbit) {
       spin.style.transform = `rotate(${to}deg)`;
       if (degrees === 0 || reducedMotion()) continue;
-      this.orbitRun.push(spin.animate([{ transform: `rotate(${from}deg)` }, { transform: `rotate(${to}deg)` }], { duration: degrees > 45 ? 520 : 380, easing: "cubic-bezier(.16,1,.3,1)" }));
+      this.orbitRun.push(spin.animate([{ transform: `rotate(${from}deg)` }, { transform: `rotate(${to}deg)` }], { duration: degrees > 45 ? 560 : 420, easing: "cubic-bezier(.22,1,.36,1)" }));
     }
   }
 

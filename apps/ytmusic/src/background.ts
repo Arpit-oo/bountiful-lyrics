@@ -75,3 +75,8 @@ chrome.runtime.onMessage.addListener((message: LyricsRequest | PaletteRequest, s
 chrome.action.onClicked.addListener((tab) => {
   if (tab.id !== undefined) void chrome.tabs.sendMessage(tab.id, { type: "toggle" }).catch(() => {});
 });
+
+// Alt+L: open or close the lyrics on the active YouTube Music tab.
+chrome.commands.onCommand.addListener((command, tab) => {
+  if (command === "toggle-lyrics" && tab?.id !== undefined) void chrome.tabs.sendMessage(tab.id, { type: "toggle" }).catch(() => {});
+});

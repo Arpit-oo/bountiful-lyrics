@@ -674,6 +674,12 @@ class App {
   }
 
   private switchMode(mode: DisplayId): void {
+    // The companion window has no size or monitor limits, so prefer it for "pop out".
+    if (mode === "window" && this.companion.connected) {
+      this.companion.send({ type: "open" });
+      this.showToast("Opened in the Bountiful Lyrics window. Drag it to any monitor, any size.");
+      return;
+    }
     if (mode !== this.settings.display) this.updateSettings({ display: mode });
     if (this.mode !== mode) void this.open(mode);
   }
@@ -743,7 +749,7 @@ class App {
         if (!this.drag) this.savePopoutBounds();
       });
       this.pip = pip;
-      if (!saved) setTimeout(() => this.showToast("Drag anywhere to move · drag the edges to resize · double-click for fullscreen"), 400);
+      if (!saved) setTimeout(() => this.showToast("Spotify limits this pop-out to half your screen and one monitor. Run the companion app for a full-size window."), 400);
       return true;
     } catch {
       return false;

@@ -166,6 +166,8 @@ interface Link {
   from: number;
   to: number;
   line: SVGLineElement;
+  /** A wide soft stroke under the line, so links glow without a blur filter. */
+  halo: SVGLineElement;
   wordIndex: number;
 }
 
@@ -287,10 +289,13 @@ export class ConstellationRenderer implements Renderer {
       const key = from < to ? `${from}-${to}` : `${to}-${from}`;
       if (seen.has(key)) return;
       seen.add(key);
+      const halo = this.wrap.ownerDocument.createElementNS(SVG_NS, "line");
+      halo.setAttribute("pathLength", "1");
+      halo.setAttribute("class", "bl-link-halo");
       const line = this.wrap.ownerDocument.createElementNS(SVG_NS, "line");
       line.setAttribute("pathLength", "1");
-      svg.appendChild(line);
-      links.push({ from, to, line, wordIndex });
+      svg.append(halo, line);
+      links.push({ from, to, line, halo, wordIndex });
     });
     this.view = { root, svg, stars, links, plan, born: performance.now() };
     this.layoutLinks(this.view);
@@ -302,10 +307,12 @@ export class ConstellationRenderer implements Renderer {
     for (const link of view.links) {
       const a = view.plan.points[link.from]!;
       const b = view.plan.points[link.to]!;
-      link.line.setAttribute("x1", String(a.x * w));
-      link.line.setAttribute("y1", String(a.y * h));
-      link.line.setAttribute("x2", String(b.x * w));
-      link.line.setAttribute("y2", String(b.y * h));
+      for (const el of [link.line, link.halo]) {
+        el.setAttribute("x1", String(a.x * w));
+        el.setAttribute("y1", String(a.y * h));
+        el.setAttribute("x2", String(b.x * w));
+        el.setAttribute("y2", String(b.y * h));
+      }
     }
   }
 
@@ -333,7 +340,13 @@ export class ConstellationRenderer implements Renderer {
         star.node.classList.add("bl-arrive");
       }
     }
-    for (const link of view.links) link.line.classList.toggle("bl-drawn", link.wordIndex <= wordIndex);
+    for (const link of view.links) {
+      const drawn = link.wordIndex <= wordIndex;
+      link.line.classList.toggle("bl-drawn", drawn);
+      link.halo.classList.toggle("bl-drawn", drawn);
+      // The newest link burns brighter for a moment.
+      link.line.classList.toggle("bl-fresh", link.wordIndex === wordIndex);
+    }
   }
 
   /** The next new star glints faintly just before its word, like the reference. */

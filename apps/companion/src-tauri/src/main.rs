@@ -18,13 +18,15 @@ use tauri::{
     WebviewWindowBuilder, WindowEvent, Wry,
 };
 
-const STYLES: [(&str, &str); 3] = [
-    ("codestyle", "Codestyle"),
+const STYLES: [(&str, &str); 4] = [
     ("constellation", "Constellation"),
+    ("garden", "Garden"),
     ("fisheye", "Fisheye"),
+    ("codestyle", "Codestyle"),
 ];
 const FRAME_ORDER: [&str; 5] = ["track", "theme", "settings", "lyrics", "clock"];
 const IDLE_LABEL: &str = "idle";
+const PLAYER_LABEL: &str = "player";
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -115,6 +117,33 @@ fn sync_overlays(app: &AppHandle) {
     }
 }
 
+/// The main window: a normal, movable, resizable app window showing the lyrics.
+fn open_player(app: &AppHandle) -> tauri::Result<()> {
+    if let Some(window) = app.get_webview_window(PLAYER_LABEL) {
+        return raise(&window);
+    }
+    let window = WebviewWindowBuilder::new(app, PLAYER_LABEL, WebviewUrl::App("index.html".into()))
+        .title("Bountiful Lyrics")
+        .inner_size(1100.0, 680.0)
+        .min_inner_size(480.0, 300.0)
+        .resizable(true)
+        .center()
+        .visible(false)
+        .initialization_script("window.__BL_MODE__ = 'player';")
+        .build()?;
+    raise(&window)
+}
+
+/// Windows refuses focus to background apps, so briefly pin the window on top to bring it forward.
+fn raise(window: &WebviewWindow) -> tauri::Result<()> {
+    // Show before un-minimising: a launcher's "start minimised" flag applies to the first show.
+    window.show()?;
+    window.unminimize()?;
+    window.set_always_on_top(true)?;
+    window.set_always_on_top(false)?;
+    window.set_focus()
+}
+
 fn open_idle(app: &AppHandle) -> tauri::Result<()> {
     if let Some(window) = app.get_webview_window(IDLE_LABEL) {
         return window.set_focus();
@@ -159,6 +188,16 @@ fn on_server_event(app: &AppHandle, event: ServerEvent) {
                 .and_then(|v| v.get("type")?.as_str().map(str::to_owned));
             // Windows validate frames themselves. This only remembers the latest of
             // each known kind so a newly opened window can catch up.
+            if kind.as_deref() == Some("open") {
+                // Spotify's pop-out button: bring up the lyrics window on the UI thread.
+                let handle = app.clone();
+                let _ = app.run_on_main_thread(move || {
+                    if let Err(error) = open_player(&handle) {
+                        eprintln!("player window failed: {error}");
+                    }
+                });
+                return;
+            }
             if let Some(kind) = kind.filter(|k| FRAME_ORDER.contains(&k.as_str())) {
                 state.frames.lock().unwrap().insert(kind, text.clone());
             }
@@ -173,7 +212,8 @@ fn on_server_event(app: &AppHandle, event: ServerEvent) {
 
 fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let state = app.state::<Shared>();
-    let glow = CheckMenuItem::with_id(app, "overlay", "Screen overlay", true, true, None::<&str>)?;
+    let player = MenuItem::with_id(app, "player", "Open lyrics window", true, None::<&str>)?;
+    let glow = CheckMenuItem::with_id(app, "overlay", "Glow around my screen", true, false, None::<&str>)?;
     let lyrics = CheckMenuItem::with_id(app, "lyrics", "Lyrics on overlay", true, false, None::<&str>)?;
     let idle = MenuItem::with_id(app, "idle", "Idle mode", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
@@ -206,6 +246,8 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let menu = Menu::with_items(
         app,
         &[
+            &player,
+            &PredefinedMenuItem::separator(app)?,
             &glow,
             &lyrics,
             &style_menu,
@@ -230,6 +272,11 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
         let state = app.state::<Shared>();
         match id {
             "quit" => app.exit(0),
+            "player" => {
+                if let Err(error) = open_player(app) {
+                    eprintln!("player window failed: {error}");
+                }
+            }
             "idle" => {
                 if let Err(error) = open_idle(app) {
                     eprintln!("idle mode failed: {error}");
@@ -278,7 +325,7 @@ fn main() {
         .manage(Shared {
             frames: Mutex::new(HashMap::new()),
             view: Mutex::new(View { show_lyrics: false, style: None }),
-            overlay_on: Mutex::new(true),
+            overlay_on: Mutex::new(false),
             displays: Mutex::new(HashSet::new()),
             style_items: Mutex::new(Vec::new()),
         })
@@ -287,6 +334,9 @@ fn main() {
             let handle = app.handle().clone();
             build_tray(&handle)?;
             sync_overlays(&handle);
+            if !std::env::args().any(|arg| arg == "--tray") {
+                open_player(&handle)?;
+            }
             if std::env::args().any(|arg| arg == "--idle") {
                 open_idle(&handle)?;
             }
@@ -303,10 +353,10 @@ fn main() {
         })
         .build(tauri::generate_context!())
         .expect("failed to start companion")
-        .run(|_, event| {
-            // It lives in the tray, so closing every window must not quit it.
+        .run(|app, event| {
+            // Closing the lyrics window quits, unless the screen glow is still running from the tray.
             if let RunEvent::ExitRequested { api, code, .. } = event {
-                if code.is_none() {
+                if code.is_none() && *app.state::<Shared>().overlay_on.lock().unwrap() {
                     api.prevent_exit();
                 }
             }

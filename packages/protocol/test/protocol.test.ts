@@ -49,3 +49,11 @@ describe("isAllowedArtUrl", () => {
     expect(isAllowedArtUrl("https://i.scdn.co/image/../x")).toBe(false);
   });
 });
+
+describe("open message", () => {
+  it("accepts the companion window request and nothing extra", async () => {
+    const { parseMessage } = await import("../src/index");
+    expect(parseMessage(JSON.stringify({ type: "open" }))).toEqual({ type: "open" });
+    expect(parseMessage(JSON.stringify({ type: "open", evil: "<script>" }))).toEqual({ type: "open" });
+  });
+});

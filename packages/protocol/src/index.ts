@@ -15,7 +15,9 @@ export type CompanionMessage =
   | { type: "lyrics"; lyrics: SyncedLyrics | null }
   | { type: "clock"; positionMs: number; playing: boolean }
   | { type: "theme"; palette: Palette }
-  | { type: "settings"; settings: Settings };
+  | { type: "settings"; settings: Settings }
+  /** Ask the companion to show its lyrics window (the full-size, any-monitor pop-out). */
+  | { type: "open" };
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const isText = (v: unknown): v is string => typeof v === "string" && v.length <= MAX_TEXT;
@@ -80,6 +82,8 @@ export function parseMessage(raw: string): CompanionMessage | null {
         : null;
     case "settings":
       return { type: "settings", settings: sanitizeSettings(v.settings) };
+    case "open":
+      return { type: "open" };
     default:
       return null;
   }
