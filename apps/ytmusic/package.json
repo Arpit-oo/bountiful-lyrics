@@ -1,0 +1,15 @@
+{
+  "name": "@bountiful/ytmusic",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@bountiful/core": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.0"
+  }
+}

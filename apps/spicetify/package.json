@@ -1,0 +1,14 @@
+{
+  "name": "@bountiful/spicetify",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "install-ext": "node build.mjs && node scripts/install.mjs"
+  },
+  "dependencies": {
+    "@bountiful/core": "0.1.0",
+    "@bountiful/protocol": "0.1.0"
+  }
+}

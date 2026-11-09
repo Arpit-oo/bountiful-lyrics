@@ -1,0 +1,10 @@
+node_modules/
+dist/
+target/
+*.zip
+apps/companion/src-tauri/gen/
+apps/companion/src-tauri/icons/android/
+apps/companion/src-tauri/icons/ios/
+*.mp4
+refrence/
+*.exe
