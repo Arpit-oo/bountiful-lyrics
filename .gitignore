@@ -11,3 +11,7 @@ refrence/
 dist-firefox/
 extension-chrome/
 extension-firefox/
+.ndemo/
+demo/*/video-raw/
+demo/*/audio/
+demo/showcase/site/main.js

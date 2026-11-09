@@ -1,0 +1,195 @@
+titleCard:
+  title: "Bountiful Lyrics"
+  subtitle: "Lyrics you can feel · Spotify, YouTube Music and desktop"
+  duration: 2500
+app:
+  url: "http://localhost:5179/"
+  viewport:
+    width: 1920
+    height: 1080
+  scale: 1
+  zoom: 1
+  colorScheme: "dark"
+tts:
+  provider: "openai"
+  voice: "alloy"
+  speed: 1
+recording:
+  outputDir: "."
+  fps: 30
+segments:
+  - id: "constellation"
+    intent: "show the constellation style building star patterns"
+    actions:
+      - type: "click"
+        target:
+          role: "button"
+          name: "Constellation"
+        done:
+          attribute:
+            selector: ".bl-stage"
+            name: "data-style"
+            value: "constellation"
+      - type: "wait"
+        duration: 7000
+    timing: "after"
+    audioDuration: 0
+    videoDuration: 8042
+  - id: "garden"
+    intent: "switch to garden and let roses grow"
+    actions:
+      - type: "click"
+        target:
+          role: "button"
+          name: "Garden"
+        done:
+          attribute:
+            selector: ".bl-stage"
+            name: "data-style"
+            value: "garden"
+      - type: "wait"
+        duration: 7000
+    timing: "after"
+    audioDuration: 0
+    videoDuration: 7960
+  - id: "fisheye"
+    intent: "switch to fisheye"
+    actions:
+      - type: "click"
+        target:
+          role: "button"
+          name: "Fisheye"
+        done:
+          attribute:
+            selector: ".bl-stage"
+            name: "data-style"
+            value: "fisheye"
+      - type: "wait"
+        duration: 5000
+    timing: "after"
+    audioDuration: 0
+    videoDuration: 5911
+  - id: "codestyle"
+    intent: "switch to codestyle"
+    actions:
+      - type: "click"
+        target:
+          role: "button"
+          name: "Codestyle"
+        done:
+          attribute:
+            selector: ".bl-stage"
+            name: "data-style"
+            value: "codestyle"
+      - type: "wait"
+        duration: 4000
+    timing: "after"
+    audioDuration: 0
+    videoDuration: 5581
+  - id: "backdrops"
+    intent: "show night sky then cinematic backdrop on constellation"
+    actions:
+      - type: "click"
+        target:
+          role: "button"
+          name: "Constellation"
+        done:
+          attribute:
+            selector: ".bl-stage"
+            name: "data-style"
+            value: "constellation"
+      - type: "click"
+        target:
+          role: "button"
+          name: "Night sky"
+        done:
+          attribute:
+            selector: ".bl-stage"
+            name: "data-bg"
+            value: "sky"
+      - type: "wait"
+        duration: 3500
+      - type: "click"
+        target:
+          role: "button"
+          name: "Cinematic"
+        done:
+          attribute:
+            selector: ".bl-stage"
+            name: "data-bg"
+            value: "cinematic"
+      - type: "wait"
+        duration: 3000
+    timing: "after"
+    audioDuration: 0
+    videoDuration: 10019
+  - id: "glow"
+    intent: "switch glow to orbit"
+    actions:
+      - type: "click"
+        target:
+          role: "button"
+          name: "Garden"
+        done:
+          attribute:
+            selector: ".bl-stage"
+            name: "data-style"
+            value: "garden"
+      - type: "click"
+        target:
+          role: "button"
+          name: "Orbit"
+        done:
+          attribute:
+            selector: ".bl-glow"
+            name: "data-mode"
+            value: "orbit"
+      - type: "wait"
+        duration: 4500
+    timing: "after"
+    audioDuration: 0
+    videoDuration: 6073
+  - id: "settings"
+    intent: "open settings and tour the tabs"
+    actions:
+      - type: "click"
+        target:
+          role: "button"
+          name: "Settings"
+        done:
+          visible: ".bl-dialog"
+      - type: "wait"
+        duration: 1600
+      - type: "click"
+        target:
+          role: "tab"
+          name: "Look"
+        done:
+          visible: ".bl-bgs"
+      - type: "wait"
+        duration: 1600
+      - type: "click"
+        target:
+          role: "tab"
+          name: "Edge glow"
+        done:
+          visible: ".bl-seg"
+      - type: "wait"
+        duration: 1600
+    timing: "after"
+    audioDuration: 0
+    videoDuration: 7483
+  - id: "finale"
+    intent: "close settings and end on garden"
+    actions:
+      - type: "click"
+        target:
+          role: "button"
+          name: "Done"
+        done:
+          hidden: ".bl-dialog"
+      - type: "wait"
+        duration: 3500
+    timing: "after"
+    audioDuration: 0
+    videoDuration: 4331
