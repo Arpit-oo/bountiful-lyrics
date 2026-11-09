@@ -293,7 +293,9 @@ class App {
   private paintVolume(): void {
     const v = this.video;
     const level = v ? (v.muted ? 0 : v.volume) : 1;
-    if (this.root.getRootNode() instanceof ShadowRoot && (this.root.getRootNode() as ShadowRoot).activeElement !== this.volume) this.volume.value = String(Math.round(level * 1000));
+    // Duck-typed: Firefox wraps page objects for extensions, so instanceof checks are unreliable.
+    const active = (this.root.getRootNode() as Document | ShadowRoot).activeElement;
+    if (active !== this.volume) this.volume.value = String(Math.round(level * 1000));
     this.paintRange(this.volume);
     this.muteBtn.innerHTML = level <= 0.001 ? ICONS.muted : ICONS.volume;
   }

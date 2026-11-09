@@ -57,3 +57,14 @@ describe("open message", () => {
     expect(parseMessage(JSON.stringify({ type: "open", evil: "<script>" }))).toEqual({ type: "open" });
   });
 });
+
+describe("parseControl", () => {
+  it("accepts known remote commands with valid values only", async () => {
+    const { parseControl } = await import("../src/index");
+    expect(parseControl(JSON.stringify({ type: "control", action: "toggle" }))).toEqual({ type: "control", action: "toggle" });
+    expect(parseControl(JSON.stringify({ type: "control", action: "seek", value: 1200 }))).toEqual({ type: "control", action: "seek", value: 1200 });
+    expect(parseControl(JSON.stringify({ type: "control", action: "volume", value: 3 }))).toBeNull();
+    expect(parseControl(JSON.stringify({ type: "control", action: "rm -rf" }))).toBeNull();
+    expect(parseControl(JSON.stringify({ type: "control", action: "settings", value: { style: "garden", evil: 1 } }))).toEqual({ type: "control", action: "settings", value: { style: "garden" } });
+  });
+});

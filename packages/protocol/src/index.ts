@@ -1,4 +1,4 @@
-import { isHexColor, sanitizeSettings, type Line, type Palette, type Settings, type SyncedLyrics } from "@bountiful/core";
+import { DEFAULT_SETTINGS, isHexColor, sanitizeSettings, type Line, type Palette, type Settings, type SyncedLyrics } from "@bountiful/core";
 
 export const COMPANION_PORT = 39517;
 export const SPOTIFY_ORIGIN = "https://xpui.app.spotify.com";
@@ -13,7 +13,7 @@ export type CompanionMessage =
   | { type: "hello"; version: number }
   | { type: "track"; title: string; artist: string; durationMs: number; artUrl: string | null; beats: number[] }
   | { type: "lyrics"; lyrics: SyncedLyrics | null }
-  | { type: "clock"; positionMs: number; playing: boolean }
+  | { type: "clock"; positionMs: number; playing: boolean; volume?: number }
   | { type: "theme"; palette: Palette }
   | { type: "settings"; settings: Settings }
   /** Ask the companion to show its lyrics window (the full-size, any-monitor pop-out). */
@@ -74,8 +74,12 @@ export function parseMessage(raw: string): CompanionMessage | null {
       const lyrics = parseLyrics(v.lyrics);
       return lyrics === undefined ? null : { type: "lyrics", lyrics };
     }
-    case "clock":
-      return isNum(v.positionMs) && typeof v.playing === "boolean" ? { type: "clock", positionMs: v.positionMs, playing: v.playing } : null;
+    case "clock": {
+      if (!isNum(v.positionMs) || typeof v.playing !== "boolean") return null;
+      const clock: CompanionMessage = { type: "clock", positionMs: v.positionMs, playing: v.playing };
+      if (isNum(v.volume) && v.volume >= 0 && v.volume <= 1) clock.volume = v.volume;
+      return clock;
+    }
     case "theme":
       return isObj(v.palette) && isHexColor(v.palette.primary) && isHexColor(v.palette.secondary)
         ? { type: "theme", palette: { primary: v.palette.primary, secondary: v.palette.secondary } }
@@ -84,6 +88,45 @@ export function parseMessage(raw: string): CompanionMessage | null {
       return { type: "settings", settings: sanitizeSettings(v.settings) };
     case "open":
       return { type: "open" };
+    default:
+      return null;
+  }
+}
+
+/** Commands the companion window sends back to Spotify. */
+export type ControlMessage =
+  | { type: "control"; action: "toggle" | "next" | "previous" }
+  | { type: "control"; action: "seek"; value: number }
+  | { type: "control"; action: "volume"; value: number }
+  | { type: "control"; action: "settings"; value: Partial<Settings> };
+
+const SETTING_KEYS = new Set(Object.keys(DEFAULT_SETTINGS));
+
+/** Validates a control frame from the companion. Settings patches keep only known keys; the
+ *  receiver still merges them through sanitizeSettings. */
+export function parseControl(raw: string): ControlMessage | null {
+  let v: unknown;
+  try {
+    v = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!isObj(v) || v.type !== "control") return null;
+  switch (v.action) {
+    case "toggle":
+    case "next":
+    case "previous":
+      return { type: "control", action: v.action };
+    case "seek":
+      return isNum(v.value) && v.value >= 0 ? { type: "control", action: "seek", value: v.value } : null;
+    case "volume":
+      return isNum(v.value) && v.value >= 0 && v.value <= 1 ? { type: "control", action: "volume", value: v.value } : null;
+    case "settings": {
+      if (!isObj(v.value)) return null;
+      const patch: Record<string, unknown> = {};
+      for (const [k, val] of Object.entries(v.value)) if (SETTING_KEYS.has(k)) patch[k] = val;
+      return { type: "control", action: "settings", value: patch as Partial<Settings> };
+    }
     default:
       return null;
   }

@@ -3,10 +3,11 @@
 
 use std::sync::{
     atomic::{AtomicU64, Ordering},
-    Arc,
+    Arc, Mutex,
 };
 
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
+use tokio::sync::mpsc;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{
     accept_hdr_async_with_config,
@@ -21,6 +22,9 @@ use tokio_tungstenite::{
 pub const PORT: u16 = 39517;
 const SPOTIFY_ORIGIN: &str = "https://xpui.app.spotify.com";
 const MAX_MESSAGE_BYTES: usize = 2 * 1024 * 1024;
+
+/// Sends text to the current Spotify connection (the newest one), if any.
+pub type Outbox = Arc<Mutex<Option<mpsc::UnboundedSender<String>>>>;
 
 pub enum ServerEvent {
     Frame(String),
@@ -38,20 +42,31 @@ fn check_origin(request: &Request, response: Response) -> Result<Response, Error
     Err(rejected)
 }
 
-async fn handle<F>(stream: TcpStream, generation: Arc<AtomicU64>, on_event: Arc<F>)
+async fn handle<F>(stream: TcpStream, generation: Arc<AtomicU64>, on_event: Arc<F>, outbox: Outbox)
 where
     F: Fn(ServerEvent) + Send + Sync + 'static,
 {
     let config = WebSocketConfig::default()
         .max_message_size(Some(MAX_MESSAGE_BYTES))
         .max_frame_size(Some(MAX_MESSAGE_BYTES));
-    let Ok(mut socket) = accept_hdr_async_with_config(stream, check_origin, Some(config)).await
+    let Ok(socket) = accept_hdr_async_with_config(stream, check_origin, Some(config)).await
     else {
         return;
     };
     // The newest connection wins, so a restarted Spotify replaces a stale socket.
     let id = generation.fetch_add(1, Ordering::SeqCst) + 1;
-    while let Some(Ok(message)) = socket.next().await {
+    let (mut sink, mut incoming) = socket.split();
+    let (tx, mut rx) = mpsc::unbounded_channel::<String>();
+    *outbox.lock().unwrap() = Some(tx);
+    // Remote control: the companion window's buttons reach Spotify through this writer.
+    let writer = tokio::spawn(async move {
+        while let Some(text) = rx.recv().await {
+            if sink.send(Message::Text(text.into())).await.is_err() {
+                break;
+            }
+        }
+    });
+    while let Some(Ok(message)) = incoming.next().await {
         if generation.load(Ordering::SeqCst) != id {
             return;
         }
@@ -59,12 +74,14 @@ where
             on_event(ServerEvent::Frame(text.to_string()));
         }
     }
+    writer.abort();
     if generation.load(Ordering::SeqCst) == id {
+        *outbox.lock().unwrap() = None;
         on_event(ServerEvent::Disconnected);
     }
 }
 
-pub async fn serve<F>(listener: std::net::TcpListener, on_event: F)
+pub async fn serve<F>(listener: std::net::TcpListener, on_event: F, outbox: Outbox)
 where
     F: Fn(ServerEvent) + Send + Sync + 'static,
 {
@@ -74,6 +91,6 @@ where
     let generation = Arc::new(AtomicU64::new(0));
     let on_event = Arc::new(on_event);
     while let Ok((stream, _)) = listener.accept().await {
-        tokio::spawn(handle(stream, generation.clone(), on_event.clone()));
+        tokio::spawn(handle(stream, generation.clone(), on_event.clone(), outbox.clone()));
     }
 }

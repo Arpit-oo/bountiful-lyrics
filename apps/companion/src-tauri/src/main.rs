@@ -6,11 +6,11 @@ mod server;
 use std::{
     collections::{HashMap, HashSet},
     net::{Ipv4Addr, TcpListener},
-    sync::Mutex,
+    sync::{Arc, Mutex},
 };
 
 use serde::Serialize;
-use server::ServerEvent;
+use server::{Outbox, ServerEvent};
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
     tray::TrayIconBuilder,
@@ -41,6 +41,22 @@ struct Shared {
     overlay_on: Mutex<bool>,
     displays: Mutex<HashSet<String>>,
     style_items: Mutex<Vec<(Option<String>, CheckMenuItem<Wry>)>>,
+    outbox: Outbox,
+}
+
+/// Remote control from the companion window. Only known actions are forwarded, and the plugin
+/// validates them again before acting.
+#[tauri::command]
+fn control(state: tauri::State<'_, Shared>, action: String, value: Option<serde_json::Value>) -> bool {
+    const ACTIONS: [&str; 6] = ["toggle", "next", "previous", "seek", "volume", "settings"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return false;
+    }
+    let message = serde_json::json!({ "type": "control", "action": action, "value": value });
+    match state.outbox.lock().unwrap().as_ref() {
+        Some(tx) => tx.send(message.to_string()).is_ok(),
+        None => false,
+    }
 }
 
 #[tauri::command]
@@ -328,8 +344,9 @@ fn main() {
             overlay_on: Mutex::new(false),
             displays: Mutex::new(HashSet::new()),
             style_items: Mutex::new(Vec::new()),
+            outbox: Arc::new(Mutex::new(None)),
         })
-        .invoke_handler(tauri::generate_handler![snapshot, view_state, close_idle])
+        .invoke_handler(tauri::generate_handler![snapshot, view_state, close_idle, control])
         .setup(move |app| {
             let handle = app.handle().clone();
             build_tray(&handle)?;
@@ -341,9 +358,14 @@ fn main() {
                 open_idle(&handle)?;
             }
             let server_handle = handle.clone();
-            tauri::async_runtime::spawn(server::serve(listener, move |event| {
-                on_server_event(&server_handle, event);
-            }));
+            let outbox = app.state::<Shared>().outbox.clone();
+            tauri::async_runtime::spawn(server::serve(
+                listener,
+                move |event| {
+                    on_server_event(&server_handle, event);
+                },
+                outbox,
+            ));
             Ok(())
         })
         .on_window_event(|window, event| {

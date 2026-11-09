@@ -8,3 +8,6 @@ apps/companion/src-tauri/icons/ios/
 *.mp4
 refrence/
 *.exe
+dist-firefox/
+extension-chrome/
+extension-firefox/

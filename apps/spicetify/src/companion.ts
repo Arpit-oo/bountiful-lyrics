@@ -1,4 +1,4 @@
-import { COMPANION_PORT, PROTOCOL_VERSION, type CompanionMessage } from "@bountiful/protocol";
+import { COMPANION_PORT, parseControl, PROTOCOL_VERSION, type CompanionMessage, type ControlMessage } from "@bountiful/protocol";
 
 const MIN_RETRY_MS = 3000;
 const MAX_RETRY_MS = 60000;
@@ -10,7 +10,10 @@ export class CompanionLink {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private enabled = false;
 
-  constructor(private readonly onConnected: () => void) {}
+  constructor(
+    private readonly onConnected: () => void,
+    private readonly onControl: (message: ControlMessage) => void = () => {},
+  ) {}
 
   setEnabled(enabled: boolean): void {
     if (enabled === this.enabled) return;
@@ -43,6 +46,11 @@ export class CompanionLink {
       this.retryMs = Math.min(MAX_RETRY_MS, this.retryMs * 2);
     };
     socket.onerror = () => socket.close();
+    // Remote control from the companion window (validated before use).
+    socket.onmessage = (e) => {
+      const control = typeof e.data === "string" ? parseControl(e.data) : null;
+      if (control) this.onControl(control);
+    };
   }
 
   private disconnect(): void {

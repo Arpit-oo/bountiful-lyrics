@@ -44,12 +44,12 @@ After Spotify updates itself, run `spicetify backup apply`.
 
 ```
 npm run build -w @bountiful/companion
-apps\companion\src-tauri\target\release\bountiful-companion.exe
+apps\companion\src-tauri	argeteleaseountiful-companion.exe
 ```
 
-Runs in the system tray and connects to the Spotify plugin automatically. It draws the glow over the desktop, and the tray menu controls lyrics on the overlay, style, displays and idle mode. Start it with `--idle` to open idle mode straight away. Esc closes idle mode.
+A normal app window that shows the lyrics from Spotify: drag it to any monitor, resize it, F11 or double-click for fullscreen. The bar at the bottom controls Spotify (play, pause, skip, seek, volume) and the gear opens the same settings as the plugin. Keys: Space play/pause, N/P next/previous, arrows seek and volume, S settings.
 
-Windows does not let normal apps draw on the lock screen, so idle mode is a fullscreen window instead.
+With the companion running, the plugin's pop-out button opens this window (Spotify's own pop-out is limited to half a screen on one monitor). The tray icon can also draw the glow around your whole screen, choose displays and open idle mode. Closing the window quits the app unless the screen glow is on.
 
 ## YouTube Music extension
 
@@ -57,9 +57,14 @@ Windows does not let normal apps draw on the lock screen, so idle mode is a full
 npm run build -w @bountiful/ytmusic
 ```
 
-Open `chrome://extensions` (or `brave://extensions`), turn on Developer mode, choose Load unpacked and select `apps/ytmusic/dist`. Open it with the star button on music.youtube.com or the toolbar icon.
+The build writes ready-to-load folders to the repo root:
 
-Music Sync glow needs beat data, which YouTube Music does not provide, so it uses the slow colour drift there.
+- **Chrome, Brave, Edge**: open `chrome://extensions` (or `brave://extensions`, `edge://extensions`), turn on Developer mode, Load unpacked, pick `extension-chrome`.
+- **Firefox (121+)**: open `about:debugging#/runtime/this-firefox`, Load Temporary Add-on, pick `extension-firefox/manifest.json`. Temporary add-ons last until Firefox restarts; a permanent install needs Mozilla signing.
+
+On music.youtube.com press Alt+L (or the star button) to open it, Esc to go back. Inside: Q up next, S settings, 1-4 styles, F fullscreen, Space, arrows, M.
+
+YouTube Music does not provide beat data, so the beat glow modes pulse at a calm tempo there.
 
 ## Layout
 

@@ -16,6 +16,7 @@ import {
   type Palette,
   type Settings,
 } from "@bountiful/core";
+import type { ControlMessage } from "@bountiful/protocol";
 import { CompanionLink } from "./companion";
 import { artUrlFor, loadBeats, loadLyrics, type TrackInfo } from "./providers";
 
@@ -145,7 +146,10 @@ class App {
   private readonly bgBtn: HTMLButtonElement;
   private readonly toast: HTMLElement;
   private drag: { kind: "move" | Edge; sx: number; sy: number; x: number; y: number; w: number; h: number; target?: { x: number; y: number; w: number; h: number } } | null = null;
-  private readonly companion = new CompanionLink(() => this.pushAll());
+  private readonly companion = new CompanionLink(
+    () => this.pushAll(),
+    (c) => this.onRemote(c),
+  );
   private lyrics: Lyrics | null = null;
   private palette: Palette = FALLBACK_PALETTE;
   private artUrl: string | null = null;
@@ -279,7 +283,7 @@ class App {
       // At startup the restored track can appear with no songchange event.
       const uri = Spicetify.Player.data?.item?.uri;
       if (uri && uri !== this.trackUri) void this.onSongChange();
-      if (this.companion.connected) this.companion.send({ type: "clock", positionMs: this.clock.position(), playing: this.clock.isPlaying() });
+      if (this.companion.connected) this.companion.send({ type: "clock", positionMs: this.clock.position(), playing: this.clock.isPlaying(), volume: Spicetify.Player.getVolume() });
       if (this.isOpen) this.paintVolume(Spicetify.Player.getVolume());
     }, COMPANION_CLOCK_MS);
 
@@ -295,6 +299,19 @@ class App {
       update: (patch: Partial<Settings>) => this.updateSettings(patch),
       state: () => ({ track: this.trackUri, lyricsKind: this.lyrics?.kind ?? null, source: this.lyrics?.source ?? null, palette: this.palette, beats: this.beats.length, position: this.clock.position(), companion: this.companion.connected, mode: this.mode, open: this.isOpen }),
     };
+  }
+
+  /** Buttons and settings from the companion window. */
+  private onRemote(c: ControlMessage): void {
+    if (c.action === "toggle") Spicetify.Player.togglePlay();
+    else if (c.action === "next") Spicetify.Player.next();
+    else if (c.action === "previous") Spicetify.Player.back();
+    else if (c.action === "seek") Spicetify.Player.seek(Math.min(c.value, Spicetify.Player.getDuration()));
+    else if (c.action === "volume") {
+      Spicetify.Player.setVolume(c.value);
+      if (this.isOpen) this.paintVolume(c.value);
+    } else if (c.action === "settings") this.updateSettings(c.value);
+    setTimeout(() => this.companion.send({ type: "clock", positionMs: Spicetify.Player.getProgress(), playing: Spicetify.Player.isPlaying(), volume: Spicetify.Player.getVolume() }), 150);
   }
 
   private onKey = (e: KeyboardEvent): void => {
@@ -417,7 +434,7 @@ class App {
     const playing = Spicetify.Player.isPlaying();
     this.playBtn.innerHTML = playing ? ICONS.pause : ICONS.play;
     this.playBtn.setAttribute("aria-label", playing ? "Pause" : "Play");
-    this.companion.send({ type: "clock", positionMs: this.clock.position(), playing: this.clock.isPlaying() });
+    this.companion.send({ type: "clock", positionMs: this.clock.position(), playing: this.clock.isPlaying(), volume: Spicetify.Player.getVolume() });
   }
 
   private toggleMute(): void {
@@ -637,7 +654,7 @@ class App {
     this.companion.send({ type: "theme", palette: this.palette });
     this.companion.send({ type: "settings", settings: this.settings });
     this.companion.send({ type: "lyrics", lyrics: this.lyrics?.kind === "synced" ? this.lyrics : null });
-    this.companion.send({ type: "clock", positionMs: this.clock.position(), playing: this.clock.isPlaying() });
+    this.companion.send({ type: "clock", positionMs: this.clock.position(), playing: this.clock.isPlaying(), volume: Spicetify.Player.getVolume() });
   }
 
   private wake(): void {
