@@ -2,7 +2,46 @@
 
 Immersive word-by-word lyrics and album-coloured edge glow for Spotify (Spicetify) and YouTube Music.
 
-## Setup
+![Bountiful Lyrics in the Garden style](docs/preview.png)
+
+## Install on Spotify
+
+You need Spotify desktop with [Spicetify](https://spicetify.app) already working.
+
+**From Spicetify Marketplace**
+
+Open Marketplace in Spotify, go to Extensions, search for "Bountiful Lyrics" and click Install.
+
+**Manually, on Windows (PowerShell)**
+
+```powershell
+New-Item -ItemType Directory -Force "$env:APPDATA\spicetify\Extensions" | Out-Null
+Invoke-WebRequest "https://raw.githubusercontent.com/Arpit-oo/bountiful-lyrics/main/release/bountiful-lyrics.js" -OutFile "$env:APPDATA\spicetify\Extensions\bountiful-lyrics.js"
+spicetify config extensions bountiful-lyrics.js
+spicetify apply
+```
+
+**Manually, on macOS or Linux**
+
+```sh
+mkdir -p ~/.config/spicetify/Extensions
+curl -fsSL "https://raw.githubusercontent.com/Arpit-oo/bountiful-lyrics/main/release/bountiful-lyrics.js" -o ~/.config/spicetify/Extensions/bountiful-lyrics.js
+spicetify config extensions bountiful-lyrics.js
+spicetify apply
+```
+
+Spotify restarts. Open the lyrics with the star button in the top bar. If Spotify does not reopen, start it yourself.
+
+To update, run the same commands again. To remove it:
+
+```
+spicetify config extensions bountiful-lyrics.js-
+spicetify apply
+```
+
+If it disappears after Spotify updates itself, run `spicetify backup apply`.
+
+## Develop
 
 ```
 npm install
@@ -10,6 +49,8 @@ npm test
 ```
 
 ## Spotify plugin
+
+Build and install your local copy:
 
 ```
 npm run install:spicetify
@@ -65,6 +106,27 @@ The build writes ready-to-load folders to the repo root:
 On music.youtube.com press Alt+L (or the star button) to open it, Esc to go back. Inside: Q up next, S settings, 1-4 styles, F fullscreen, Space, arrows, M.
 
 YouTube Music does not provide beat data, so the beat glow modes pulse at a calm tempo there.
+
+## Publish to Spicetify Marketplace
+
+Marketplace lists public GitHub repositories that have the `spicetify-extensions` topic and a valid `manifest.json` in the root. This repository already has the manifest, `docs/preview.png` and the built `release/bountiful-lyrics.js`.
+
+To list it, add the topic once:
+
+```
+gh repo edit Arpit-oo/bountiful-lyrics --add-topic spicetify-extensions
+```
+
+Or use the gear next to About on the GitHub repository page. To remove it from Marketplace, remove the topic.
+
+To ship a new version, rebuild the release file and push it to `main`:
+
+```
+npm run release:spicetify
+git add release/bountiful-lyrics.js
+git commit -m "Release plugin"
+git push
+```
 
 ## Layout
 

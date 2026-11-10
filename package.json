@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build:spicetify": "npm run build -w @bountiful/spicetify",
-    "install:spicetify": "npm run install-ext -w @bountiful/spicetify"
+    "install:spicetify": "npm run install-ext -w @bountiful/spicetify",
+    "release:spicetify": "npm run build:spicetify && node scripts/release-spicetify.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

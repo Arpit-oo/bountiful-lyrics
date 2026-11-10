@@ -1,0 +1,9 @@
+{
+  "name": "Bountiful Lyrics",
+  "description": "Immersive word-by-word lyrics with constellation, garden, fisheye and code styles, album-coloured backdrops and a beat-synced edge glow.",
+  "preview": "docs/preview.png",
+  "main": "release/bountiful-lyrics.js",
+  "readme": "README.md",
+  "branch": "main",
+  "tags": ["lyrics", "visualizer", "fullscreen"]
+}
