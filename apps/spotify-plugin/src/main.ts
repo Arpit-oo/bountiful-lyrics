@@ -264,7 +264,7 @@ class App {
 
     const closeHolder = div("bl-close", this.root);
     closeHolder.append(Object.assign(document.createElement("span"), { className: "bl-close-hint", textContent: "Esc" }));
-    iconButton("bl-icon-btn", "Close lyrics (Esc)", ICONS.close, closeHolder, () => this.close());
+    iconButton("bl-icon-btn", "Close lyrics (Esc or B)", ICONS.close, closeHolder, () => this.close());
 
     this.root.addEventListener("mousemove", () => this.wake());
     this.root.addEventListener("mousedown", () => this.wake());
@@ -273,7 +273,9 @@ class App {
     Spicetify.Player.addEventListener("songchange", () => this.onSongChange());
     Spicetify.Player.addEventListener("onplaypause", () => this.onPlayPause());
     Spicetify.Player.addEventListener("onprogress", () => this.syncClock(false));
-    new Spicetify.Topbar.Button("Bountiful Lyrics", TOPBAR_ICON, () => this.toggle());
+    // Sits in the playbar next to Spotify's own lyrics button; older Spicetify falls back to the top bar.
+    if (Spicetify.Playbar?.Button) new Spicetify.Playbar.Button("Bountiful Lyrics (B)", TOPBAR_ICON, () => this.toggle(), false, false, true);
+    else new Spicetify.Topbar.Button("Bountiful Lyrics (B)", TOPBAR_ICON, () => this.toggle());
     // A lyrics page behaves like any Spotify page: navigating away closes it.
     Spicetify.Platform?.History?.listen(() => {
       if (this.isOpen && this.mode === "page") this.close();
@@ -315,9 +317,18 @@ class App {
   }
 
   private onKey = (e: KeyboardEvent): void => {
-    if (!this.isOpen || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
     const target = e.target as HTMLElement | null;
-    if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName) && e.key !== "Escape") return;
+    const typing = !!target && (/^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName) || target.isContentEditable);
+    if (!this.isOpen) {
+      // B opens the lyrics from anywhere in Spotify, unless you are typing (search box, etc.).
+      if (!typing && !e.repeat && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        void this.open();
+      }
+      return;
+    }
+    if (typing && e.key !== "Escape") return;
     if (this.root.querySelector(".bl-scrim")) return; // The settings dialog handles its own keys.
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     const handled = this.shortcut(key);
@@ -332,6 +343,7 @@ class App {
     const step = (list: readonly string[], current: string) => list[(list.indexOf(current) + 1) % list.length]!;
     switch (key) {
       case "Escape":
+      case "b":
         this.close();
         return true;
       case " ":
@@ -355,7 +367,7 @@ class App {
         this.showLyrics = !this.showLyrics;
         this.renderView();
         return true;
-      case "b":
+      case "a":
         this.updateSettings({ background: this.settings.background === "art" ? "auto" : "art" });
         this.showToast(this.settings.background === "art" ? "Album art background" : "Style backdrop");
         return true;
@@ -796,5 +808,6 @@ class App {
   while (!ready()) await new Promise((r) => setTimeout(r, 200));
   // Give CosmosAsync (Spotify's own lyrics) a moment, but never block on it.
   for (let i = 0; i < 25 && !Spicetify.CosmosAsync; i++) await new Promise((r) => setTimeout(r, 200));
+  for (let i = 0; i < 25 && !Spicetify.Playbar?.Button; i++) await new Promise((r) => setTimeout(r, 200));
   new App();
 })();

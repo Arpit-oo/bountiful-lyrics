@@ -32,6 +32,7 @@ declare const Spicetify: {
   CosmosAsync?: { get(url: string): Promise<any> };
   LocalStorage: { get(key: string): string | null; set(key: string, value: string): void };
   Topbar: { Button: new (label: string, icon: string, onClick: () => void) => unknown };
+  Playbar?: { Button: new (label: string, icon: string, onClick: () => void, disabled?: boolean, active?: boolean, registerOnCreate?: boolean) => unknown };
   getAudioData(uri?: string): Promise<{ beats?: Array<{ start: number; confidence?: number }> } | null>;
 };
 

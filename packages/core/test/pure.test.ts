@@ -192,4 +192,13 @@ describe("fisheye icons", () => {
     }
     expect(iconFor("the")).toBeUndefined();
   });
+
+  it("covers the newer word groups", async () => {
+    const { iconFor } = await import("../src/styles/fisheye");
+    for (const w of ["graph", "Charts", "winning", "plane", "rocket", "galaxy", "clouds", "breathe", "rainbow", "trees", "mountain", "cat", "dawg", "bird", "butterfly", "snake", "fish", "dinner", "coffee", "birthday", "sweet", "story", "write", "letter", "wedding", "mic", "guitar", "movie", "online", "game", "ballin'", "shot", "boom", "protect", "knife", "boat", "journey", "walkin'", "shades", "drip", "door", "window", "tomorrow", "train", "wake", "thinking", "said", "flag"]) {
+      expect(iconFor(w), w).toBeTruthy();
+    }
+    // Every icon is our own constant SVG markup.
+    expect(iconFor("graph")).toMatch(/^<svg viewBox="0 0 24 24" aria-hidden="true"><path /);
+  });
 });

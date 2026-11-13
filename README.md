@@ -73,7 +73,7 @@ spicetify config extensions bountiful-lyrics.js
 spicetify apply
 ```
 
-Spotify restarts. Open the lyrics with the star button in the top bar. If Spotify does not reopen, start it yourself.
+Spotify restarts. Open the lyrics with the star button in the playbar (bottom right, next to Spotify's own lyrics button) or press `B`; press `B` again to go back. If Spotify does not reopen, start it yourself.
 
 Use only one of the two options. If you switch from manual to Marketplace, remove the manual copy first so it does not load twice.
 
@@ -118,13 +118,15 @@ Build and install your local copy:
 npm run install:spicetify
 ```
 
-Builds the extension, adds it to Spicetify and restarts Spotify. Open it with the star button in Spotify's top bar.
+Builds the extension, adds it to Spicetify and restarts Spotify. Open it with the star button next to Spotify's lyrics button, or press `B`.
 
 Three ways to view it, switchable from the bottom bar or Settings → Open in:
 
 - **Inside Spotify**: fills the main view like a normal page. The sidebar and playbar stay usable; navigating away closes it.
 - **Fullscreen**: takes over the screen. Press `F` to toggle, `Space` to play or pause, `Esc` to close.
 - **Pop-out window**: a separate always-on-top window for another monitor. Drag anywhere to move it, drag an edge or corner to resize (applied when you let go), double-click for fullscreen. It remembers its size and place and keeps animating when Spotify is minimised.
+
+Keys while open: `B` or `Esc` close, `F` fullscreen, `P` pop-out, `I` inside Spotify, `S` settings, `1`-`4` styles, `A` album art or style backdrop, `G` glow mode, `L` hide lyrics, arrows seek and volume, `M` mute.
 
 Styles:
 

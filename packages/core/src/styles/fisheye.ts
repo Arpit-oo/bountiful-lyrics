@@ -3,6 +3,8 @@ import { el, hash, reducedMotion, type Renderer } from "./types";
 
 const svg = (body: string) => `<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
 const P = (d: string) => `<path d="${d}"/>`;
+/** Even-odd fill so inner shapes punch holes (rings, screens, envelopes). */
+const E = (d: string) => `<path fill-rule="evenodd" d="${d}"/>`;
 
 /** Small glyphs that sit beside matching words. Only these constants are ever used as markup. */
 const ICONS: Array<[RegExp, string]> = [
@@ -49,6 +51,53 @@ const ICONS: Array<[RegExp, string]> = [
   [/^(fight|fighting|war|battle|fist|strong|tough)$/i, svg(P("M6 9a2 2 0 0 1 2-2h1V5a2 2 0 0 1 4 0v2h1V6a2 2 0 0 1 4 0v8a7 7 0 0 1-7 7H9a3 3 0 0 1-3-3Z"))],
   [/^(party|celebrate|club|clubs|dance|turnt|turn)$/i, svg(P("M3 21 9 6l9 9Zm3.4-3.4 5.2-2.1-3.1-3.1ZM14 3h2v3h-2zm5 2 1.4 1.4-2.1 2.1-1.4-1.4ZM18 10h3v2h-3z"))],
   [/^(baby|babe|child|kid|kids|young|youth)$/i, svg(P("M12 3a8 8 0 0 1 8 8 8 8 0 0 1-16 0 8 8 0 0 1 8-8Zm-3 7a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 9 10Zm6 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6Zm-5.5 4.5a3.5 3.5 0 0 0 5 0ZM12 3c1.5 0 2 1 1.5 2S11 6 11 4.5 11.5 3 12 3Z"))],
+  [/^(graph|graphs|chart|charts|numbers|stats|data|grow|growing|growth|progress|profit|gains|level|levels|success)$/i, svg(E("M3 3h2v16h16v2H3ZM7 13h3v5H7ZM12 9h3v9h-3ZM17 5h3v13h-3Z"))],
+  [/^(win|winning|winner|winners|won|champion|champions|victory|trophy|first)$/i, svg(E("M7 3h10v2h4v3a4 4 0 0 1-4 4h-.5A5 5 0 0 1 13 15v3h3v3H8v-3h3v-3a5 5 0 0 1-3.5-3H7a4 4 0 0 1-4-4V5h4Zm0 4H5v1a2 2 0 0 0 2 2Zm10 0v3a2 2 0 0 0 2-2V7Z"))],
+  [/^(plane|planes|flight|flights|jet|airport|travel|trip|abroad|overseas)$/i, svg(P("M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"))],
+  [/^(rocket|rockets|launch|takeoff|astronaut|spaceship)$/i, svg(E("M12 2c3 2 5 6 5 10l2 3v4l-3-2h-2l-1 3h-2l-1-3H8l-3 2v-4l2-3c0-4 2-8 5-10Zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"))],
+  [/^(planet|planets|galaxy|galaxies|universe|space|mars|saturn|orbit|cosmic)$/i, svg(P("M12 6a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z") + P("M2 17c-1-2 3-5 7.5-7l.4 1.6C6 13.3 3.8 15.3 4.3 16c.6.8 4.5-.3 9-2.8s7.6-5 7-5.8c-.3-.4-1.6-.3-3.4.3l-.8-1.5c3-1 5.4-1.1 6 .1 1 2-3 5.5-8 8.2S3 19 2 17Z"))],
+  [/^(cloud|clouds|cloudy|weather|grey|gray|fog|foggy)$/i, svg(P("M7 19a5 5 0 0 1-.6-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 10Z"))],
+  [/^(wind|winds|breeze|blow|blowing|air|breathe|breath|breathing)$/i, svg(P("M3 8h11a2.5 2.5 0 1 0-2.5-2.5h-2A4.5 4.5 0 1 1 14 10H3Zm0 4h15a3 3 0 1 1-3 3h2a1 1 0 1 0 1-1H3Zm0 4h7v2H3Z"))],
+  [/^(rainbow|rainbows|colors|colours|color|colour|pride)$/i, svg(E("M2 18a10 10 0 0 1 20 0h-2a8 8 0 0 0-16 0Zm4 0a6 6 0 0 1 12 0h-2a4 4 0 0 0-8 0Z"))],
+  [/^(tree|trees|forest|woods|jungle|nature|leaf|leaves|branch|roots)$/i, svg(P("M12 2l6 8h-3l5 6h-7v6h-2v-6H4l5-6H6Z"))],
+  [/^(mountain|mountains|hill|hills|peak|valley|cliff)$/i, svg(P("M2 20 9 7l4 7 2-3 7 9Z"))],
+  [/^(cat|cats|kitten|kitty|meow)$/i, svg(E("M4 3l4 4h8l4-4v9a8 8 0 0 1-16 0Zm5 8a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 9 11Zm6 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6Zm-3 4-1.5 1.5h3Z"))],
+  [/^(dog|dogs|puppy|pup|doggy|dawg|dawgs|wolf|wolves|lion|lions|tiger|tigers|beast|animal|animals)$/i, svg(P("M12 11c3 0 6 4 6 7 0 2-2 3-3.5 2.5S13 20 12 20s-1 .8-2.5.5S6 20 6 18c0-3 3-7 6-7ZM5 7a2 2.5 0 1 1 0 5 2 2.5 0 0 1 0-5Zm14 0a2 2.5 0 1 1 0 5 2 2.5 0 0 1 0-5ZM9 2a2 2.5 0 1 1 0 5 2 2.5 0 0 1 0-5Zm6 0a2 2.5 0 1 1 0 5 2 2.5 0 0 1 0-5Z"))],
+  [/^(bird|birds|dove|doves|crow|raven|feather|feathers|nest)$/i, svg(P("M3 12c3 0 5-1 7-4 1-2 3-3 5-3a3 3 0 0 1 3 2l3 1-3 1c0 6-4 10-11 10H4l3-3c-2 0-3-2-4-4Z"))],
+  [/^(butterfly|butterflies)$/i, svg(P("M12 7c1-3 4-5 7-5 2 0 3 1 3 3 0 3-2 6-5 7 2 1 3 3 3 5s-2 3-4 3c-2 0-4-3-4-5 0 2-2 5-4 5s-4-1-4-3 1-4 3-5C4 11 2 8 2 5c0-2 1-3 3-3 3 0 6 2 7 5Z"))],
+  [/^(snake|snakes|serpent|venom|poison|toxic)$/i, svg(P("M17 3a3 3 0 0 1 3 3v1h-2V6a1 1 0 0 0-2 0v5a5 5 0 0 1-5 5H8a1 1 0 0 0 0 2h10v3H8a4 4 0 0 1 0-8h3a2 2 0 0 0 2-2V6a3 3 0 0 1 3-3Z"))],
+  [/^(fish|fishing|shark|sharks)$/i, svg(E("M2 12c3-5 9-7 14-4l5-3v14l-5-3c-5 3-11 1-14-4Zm6-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"))],
+  [/^(food|eat|eating|ate|hungry|dinner|lunch|breakfast|feast|cook|cooking|kitchen)$/i, svg(P("M5 2h1.5v6h1V2H9v6h1V2h1.5v6.5A3 3 0 0 1 9.3 11.4V22H7.2V11.4A3 3 0 0 1 5 8.5ZM16 2c2.5 1 4 4 4 8h-2v12h-2Z"))],
+  [/^(coffee|tea|latte|espresso|cafe|caffeine)$/i, svg(P("M3 8h14v5a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6ZM17 9h1.5a3 3 0 0 1 0 6H17v-2h1.5a1 1 0 0 0 0-2H17ZM2 20h16v2H2ZM8 2h2v4H8Zm4 1h2v3h-2Z"))],
+  [/^(cake|birthday|candle|candles|bday)$/i, svg(P("M11 2h2v4h-2ZM6 7h12v2H6ZM4 10h16v4H4Zm0 5h16v6H4Z"))],
+  [/^(sweet|sugar|candy|cherry|cherries|fruit|apple)$/i, svg(P("M7 13a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm10-2a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM7 13c1-5 4-9 9-11l.5 1.5C13 5 11 8 10.5 13Zm9.5-2C16 7 16 5 16.5 3l1.5.3c-.4 2-.3 4 .5 7.7Z"))],
+  [/^(book|books|read|reading|story|stories|page|pages|chapter|chapters)$/i, svg(P("M3 4c3-1 6-1 8 1v15c-2-2-5-2-8-1Zm10 1c2-2 5-2 8-1v15c-3-1-6-1-8 1Z"))],
+  [/^(write|wrote|writing|written|pen|poem|poems|poetry|ink)$/i, svg(P("M16.5 2.5l5 5L8 21H3v-5Z"))],
+  [/^(letter|letters|mail|envelope|message|messages|dm|dms)$/i, svg(E("M2 5h20v14H2Zm2 2v.5l8 5 8-5V7Zm0 3v7h16v-7l-8 5Z"))],
+  [/^(marry|married|marriage|wedding|bride|groom|vows|engaged|wife|husband)$/i, svg(E("M12 7a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10ZM9 2h6l2 3-5 3-5-3Z"))],
+  [/^(mic|microphone|rap|rapper|rapping|verse|verses|stage|spotlight)$/i, svg(P("M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4ZM5 11h2a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.9V21h3v2H8v-2h3v-3.1A7 7 0 0 1 5 11Z"))],
+  [/^(guitar|guitars|rock|band|strings|solo)$/i, svg(E("M19 2l3 3-2 2-1.5-.5L14 11a4 4 0 0 1-1 5 4 4 0 0 1-3 4c-2.5.5-5.5-.5-7-2s-2.5-4.5-2-7a4 4 0 0 1 4-3 4 4 0 0 1 5-1l4.5-4.5L17.5 4Zm-10.5 10a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"))],
+  [/^(tv|television|screen|screens|movie|movies|cinema|channel|episode)$/i, svg(E("M3 5h18v12H3Zm2 2v8h14V7ZM8 19h8v2H8Z"))],
+  [/^(computer|laptop|internet|online|offline|wifi|digital|app|apps)$/i, svg(E("M4 4h16v11H4Zm2 2v7h12V6ZM2 17h20v2H2Z"))],
+  [/^(game|games|gaming|gamer|play|playing|player|players)$/i, svg(E("M7 7h10a5 5 0 0 1 4.9 6l-.7 3.5a2.5 2.5 0 0 1-4.3 1.2L14.5 15h-5l-2.4 2.7a2.5 2.5 0 0 1-4.3-1.2L2.1 13A5 5 0 0 1 7 7Zm0 2.5v1.5H5.5v1.5H7V14h1.5v-1.5H10V11H8.5V9.5Zm9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"))],
+  [/^(ball|balls|balling|basketball|football|soccer|hoop|hoops|court|score|goal|goals|team)$/i, svg(E("M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1 2.1V11H4.1A8 8 0 0 1 11 4.1Zm2 0A8 8 0 0 1 19.9 11H13Zm-8.9 8.9H11v6.9A8 8 0 0 1 4.1 13Zm8.9 0h6.9a8 8 0 0 1-6.9 6.9Z"))],
+  [/^(target|targets|aim|focus|focused|shoot|shot|shots|bullseye)$/i, svg(E("M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0 2.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"))],
+  [/^(bomb|boom|bang|explode|exploding|explosion|blast|dynamite)$/i, svg(P("M10 7a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm3-1 2-2 1.5 1.5-2 2ZM17 2h2v2h-2Zm2.5 2.5 1.5-1 .8 1.4-1.5 1Z"))],
+  [/^(protect|protection|shield|guard|armor|armour|save|saved|saving|defend)$/i, svg(P("M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5Z"))],
+  [/^(sword|swords|blade|blades|knife|knives|dagger)$/i, svg(P("M20 2h2v2l-11 11 1.5 1.5-1.5 1.5-2-2-3 3 1 1-1.5 1.5L2 19.5 3.5 18l1 1 3-3-2-2L7 12.5 8.5 14Z"))],
+  [/^(boat|boats|ship|ships|sail|sailing|captain|yacht|anchor)$/i, svg(P("M11 2h2v9h-2ZM13 3l6 7h-6ZM3 12h18l-3 7H6ZM4 20h16v2H4Z"))],
+  [/^(map|journey|adventure|explore|somewhere|anywhere|direction|compass|north|south)$/i, svg(E("M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.5 5.5-2.5 6.5-6.5 2.5 2.5-6.5Z"))],
+  [/^(shoes|shoe|sneakers|kicks|walk|walking|walked|step|steps|feet|jordans)$/i, svg(P("M2 17v-6l4-1 3 2 3-4 3 3 7 3v3Zm0 1h20v2H2Z"))],
+  [/^(glasses|shades|sunglasses|vision|blind)$/i, svg(P("M2 9h20v2h-1l-1 4a3 3 0 0 1-3 2h-1a3 3 0 0 1-3-2.5L13 12h-2l-.9 2.5A3 3 0 0 1 7 17H6a3 3 0 0 1-3-2l-1-4Z"))],
+  [/^(dress|clothes|fashion|drip|outfit|designer|shirt|jacket|style)$/i, svg(P("M8 3 3 6l2 4 2-1v12h10V9l2 1 2-4-5-3a3 3 0 0 1-6 0Z"))],
+  [/^(door|doors|knock|knocking|inside|outside|enter)$/i, svg(E("M5 2h14v19h2v2H3v-2h2Zm2 2v17h10V4Zm7 8a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"))],
+  [/^(window|windows)$/i, svg(E("M4 3h16v18H4Zm2 2v6h5V5Zm7 0v6h5V5Zm-7 8v6h5v-6Zm7 0v6h5v-6Z"))],
+  [/^(calendar|today|tomorrow|yesterday|week|weeks|weekend|date|dates|monday|friday|sunday)$/i, svg(E("M7 2h2v2h6V2h2v2h4v17H3V4h4Zm-2 7v10h14V9Z"))],
+  [/^(train|trains|subway|metro|station|tracks)$/i, svg(E("M6 2h12a3 3 0 0 1 3 3v11a3 3 0 0 1-2.5 3l2 2.5h-2.5l-2-2.5h-8l-2 2.5H3.5l2-2.5A3 3 0 0 1 3 16V5a3 3 0 0 1 3-3Zm-1 3v5h14V5Zm2 8a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm10 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"))],
+  [/^(bell|bells|alarm|wake|awake|woke|notification|notifications)$/i, svg(P("M12 2a2 2 0 0 1 2 2v.3A6 6 0 0 1 18 10v5l2 3H4l2-3v-5a6 6 0 0 1 4-5.7V4a2 2 0 0 1 2-2Zm-2.5 17h5a2.5 2.5 0 0 1-5 0Z"))],
+  [/^(idea|ideas|think|thinking|thought|thoughts|mind|minds|brain|genius|smart)$/i, svg(P("M12 2a7 7 0 0 1 4 12.7V17H8v-2.3A7 7 0 0 1 12 2ZM8 18h8v2H8Zm2 3h4v1h-4Z"))],
+  [/^(talk|talking|talked|say|said|tell|told|words|speak|speaking|conversation|chat|lies|lie|lying)$/i, svg(P("M3 4h18v12H9l-5 4v-4H3Z"))],
+  [/^(flag|flags|country|nation|land|army|soldier)$/i, svg(P("M5 2h2v20H5ZM8 3h11l-2.5 4L19 11H8Z"))],
 ];
 
 export const iconFor = (word: string): string | undefined => {
