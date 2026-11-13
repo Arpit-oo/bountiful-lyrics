@@ -386,6 +386,14 @@ export function openSettings(host: HTMLElement, settings: Settings, onChange: Ch
     const parts: HTMLElement[] = [
       section("Style", cards),
       section("Text", row("Text size", slider(0.6, 1.6, 0.05, s.textScale, (v) => `${Math.round(v * 100)}%`, "Text size", (textScale) => set({ textScale })))),
+      section(
+        "Timing",
+        row(
+          "Lyrics timing",
+          slider(-1000, 1000, 25, s.lyricsOffsetMs, (v) => (v === 0 ? "Default" : v > 0 ? `${v} ms earlier` : `${-v} ms later`), "Lyrics timing", (lyricsOffsetMs) => set({ lyricsOffsetMs })),
+          "Lyrics late? Move right. Early? Move left.",
+        ),
+      ),
     ];
     if (s.style === "constellation") {
       parts.push(

@@ -1,5 +1,5 @@
 // Builds the extension for Chromium browsers (Chrome, Brave, Edge) and Firefox, then copies both to
-// the repo root as extension-chrome/ and extension-firefox/ so they are easy to find and load.
+// release/youtube-music-chrome/ and release/youtube-music-firefox/ so they are easy to find and load.
 import { copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import * as esbuild from "esbuild";
 
@@ -15,10 +15,10 @@ const shared = {
 const template = JSON.parse(readFileSync("manifest.template.json", "utf8"));
 
 const targets = {
-  chrome: { dir: "dist", root: "../../extension-chrome", manifest: { ...template, background: { service_worker: "background.js", type: "module" } }, bgFormat: "esm" },
+  chrome: { dir: "dist", root: "../../release/youtube-music-chrome", manifest: { ...template, background: { service_worker: "background.js", type: "module" } }, bgFormat: "esm" },
   firefox: {
     dir: "dist-firefox",
-    root: "../../extension-firefox",
+    root: "../../release/youtube-music-firefox",
     // Firefox runs MV3 backgrounds as event pages (scripts), not service workers, and needs an id.
     manifest: {
       ...template,

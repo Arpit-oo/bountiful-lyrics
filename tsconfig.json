@@ -11,5 +11,5 @@
     "isolatedModules": true,
     "types": []
   },
-  "include": ["packages/*/src", "packages/*/test", "apps/spicetify/src", "apps/companion/src", "apps/ytmusic/src", "apps/ytmusic/test"]
+  "include": ["packages/*/src", "packages/*/test", "apps/spotify-plugin/src", "apps/companion/src", "apps/youtube-music-extension/src", "apps/youtube-music-extension/test"]
 }

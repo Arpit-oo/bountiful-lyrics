@@ -2,5 +2,5 @@
 import { copyFileSync, mkdirSync } from "node:fs";
 
 mkdirSync("release", { recursive: true });
-copyFileSync("apps/spicetify/dist/bountiful-lyrics.js", "release/bountiful-lyrics.js");
+copyFileSync("apps/spotify-plugin/dist/bountiful-lyrics.js", "release/bountiful-lyrics.js");
 console.log("copied to release/bountiful-lyrics.js");

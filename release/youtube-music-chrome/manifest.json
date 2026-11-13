@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Bountiful Lyrics",
+  "version": "0.2.0",
+  "description": "Immersive word-by-word lyrics and album-coloured edge glow for YouTube Music.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://lrclib.net/*",
+    "https://lh3.googleusercontent.com/*",
+    "https://yt3.googleusercontent.com/*",
+    "https://i.ytimg.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://music.youtube.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Bountiful Lyrics (Alt+L)",
+    "default_icon": {
+      "32": "icon32.png"
+    }
+  },
+  "commands": {
+    "toggle-lyrics": {
+      "suggested_key": {
+        "default": "Alt+L"
+      },
+      "description": "Open or close Bountiful Lyrics"
+    }
+  },
+  "icons": {
+    "32": "icon32.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

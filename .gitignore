@@ -9,8 +9,6 @@ apps/companion/src-tauri/icons/ios/
 refrence/
 *.exe
 dist-firefox/
-extension-chrome/
-extension-firefox/
 .ndemo/
 demo/*/video-raw/
 demo/*/audio/

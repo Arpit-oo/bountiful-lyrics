@@ -4,13 +4,26 @@ Immersive word-by-word lyrics and album-coloured edge glow for Spotify (Spicetif
 
 ![Bountiful Lyrics in the Garden style](docs/preview.png)
 
+## What's where
+
+| You want | Ready to use | Source code |
+|---|---|---|
+| Spotify plugin (the one on Spicetify Marketplace) | `release/bountiful-lyrics.js` | `apps/spotify-plugin/` |
+| YouTube Music extension for Chrome, Brave, Edge | `release/youtube-music-chrome/` | `apps/youtube-music-extension/` |
+| YouTube Music extension for Firefox | `release/youtube-music-firefox/` | `apps/youtube-music-extension/` |
+| Desktop companion window (Windows) | build it, see below | `apps/companion/` |
+
+Everything in `release/` is built and ready; the code all three share lives in `packages/`.
+
 ## Install on Spotify
 
 You need Spotify desktop with [Spicetify](https://spicetify.app) already working.
 
 **From Spicetify Marketplace**
 
-Open Marketplace in Spotify, go to Extensions, search for "Bountiful Lyrics" and click Install.
+Open Marketplace in Spotify and go to the Extensions tab. New listings with few stars sit near the bottom of the default list, so either search for "Bountiful Lyrics" or set the sort (top of Marketplace) to "Last updated". Click Install on the card.
+
+If you installed it manually before, remove that copy first (see below) so it does not load twice.
 
 **Manually, on Windows (PowerShell)**
 
@@ -77,6 +90,8 @@ Edge glow: Music Sync (default) walks light around the screen edges on the beat,
 
 Settings (gear icon) has tabs for Lyrics, Look, Colour, Edge glow and More: style cards, ten fonts (including bubbly, retro script, hand-drawn and tall poster faces), star and word size for Constellation, Tilt for Fisheye and Codestyle, colour wheels for manual colours.
 
+Lyrics running early or late? Settings → Lyrics → Timing shifts the words by up to 1 second either way. Default is 0; the edge glow always stays on the beat.
+
 Lyrics come from Spotify first, then LRCLIB. When neither has timing, the plain text is shown.
 
 After Spotify updates itself, run `spicetify backup apply`.
@@ -85,7 +100,7 @@ After Spotify updates itself, run `spicetify backup apply`.
 
 ```
 npm run build -w @bountiful/companion
-apps\companion\src-tauri	argeteleaseountiful-companion.exe
+apps\companion\src-tauri\target\release\bountiful-companion.exe
 ```
 
 A normal app window that shows the lyrics from Spotify: drag it to any monitor, resize it, F11 or double-click for fullscreen. The bar at the bottom controls Spotify (play, pause, skip, seek, volume) and the gear opens the same settings as the plugin. Keys: Space play/pause, N/P next/previous, arrows seek and volume, S settings.
@@ -98,10 +113,10 @@ With the companion running, the plugin's pop-out button opens this window (Spoti
 npm run build -w @bountiful/ytmusic
 ```
 
-The build writes ready-to-load folders to the repo root:
+Built copies are already in `release/`, so you can skip the build and load them straight away. The build refreshes them:
 
-- **Chrome, Brave, Edge**: open `chrome://extensions` (or `brave://extensions`, `edge://extensions`), turn on Developer mode, Load unpacked, pick `extension-chrome`.
-- **Firefox (121+)**: open `about:debugging#/runtime/this-firefox`, Load Temporary Add-on, pick `extension-firefox/manifest.json`. Temporary add-ons last until Firefox restarts; a permanent install needs Mozilla signing.
+- **Chrome, Brave, Edge**: open `chrome://extensions` (or `brave://extensions`, `edge://extensions`), turn on Developer mode, Load unpacked, pick `release/youtube-music-chrome`.
+- **Firefox (121+)**: open `about:debugging#/runtime/this-firefox`, Load Temporary Add-on, pick `release/youtube-music-firefox/manifest.json`. Temporary add-ons last until Firefox restarts; a permanent install needs Mozilla signing.
 
 On music.youtube.com press Alt+L (or the star button) to open it, Esc to go back. Inside: Q up next, S settings, 1-4 styles, F fullscreen, Space, arrows, M.
 
@@ -132,4 +147,7 @@ git push
 
 - `packages/core`: lyrics, timing, renderers, glow, settings UI
 - `packages/protocol`: validated messages between the plugin and companion
-- `apps/spicetify`, `apps/companion`, `apps/ytmusic`: the three targets
+- `apps/spotify-plugin`: Spicetify plugin for Spotify (built to `release/bountiful-lyrics.js`)
+- `apps/youtube-music-extension`: browser extension (built to `release/youtube-music-chrome` and `release/youtube-music-firefox`)
+- `apps/companion`: Tauri desktop window
+- `release/`: built files people download; Marketplace reads `release/bountiful-lyrics.js` via `manifest.json`

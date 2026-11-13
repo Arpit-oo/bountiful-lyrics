@@ -23,6 +23,8 @@ export interface Settings {
   display: DisplayId;
   font: FontId;
   textScale: number;
+  /** Shifts lyrics against the music, in ms. Positive shows them earlier, negative later. */
+  lyricsOffsetMs: number;
   /** Constellation star size multiplier. */
   starScale: number;
   /** Constellation word size multiplier, on top of text size. */
@@ -53,6 +55,7 @@ export const DEFAULT_SETTINGS: Settings = {
   display: "page",
   font: "jakarta",
   textScale: 1,
+  lyricsOffsetMs: 0,
   starScale: 1,
   starTextScale: 1,
   tilt: 0.5,
@@ -94,6 +97,7 @@ export function sanitizeSettings(input: unknown): Settings {
     display: oneOf(DISPLAY_IDS, v.display, d.display),
     font: oneOf(FONT_IDS, v.font, d.font),
     textScale: clamp(v.textScale, 0.6, 1.6, d.textScale),
+    lyricsOffsetMs: clamp(v.lyricsOffsetMs, -1000, 1000, d.lyricsOffsetMs),
     starScale: clamp(v.starScale, 0.5, 2.5, d.starScale),
     starTextScale: clamp(v.starTextScale, 0.6, 2.4, d.starTextScale),
     tilt: clamp(v.tilt, 0, 1, d.tilt),

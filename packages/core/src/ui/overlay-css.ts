@@ -138,7 +138,7 @@ export const OVERLAY_CSS = `
 .bl-range{-webkit-appearance:none;appearance:none;flex:1;height:20px;margin:0;background:transparent;cursor:pointer;--bl-fill:50%}
 .bl-range::-webkit-slider-runnable-track{height:5px;border-radius:3px;background:linear-gradient(90deg,#fff var(--bl-fill),rgba(255,255,255,.18) var(--bl-fill))}
 .bl-range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6.5px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.5)}
-.bl-slider-value{min-width:46px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:rgba(255,255,255,.7)}
+.bl-slider-value{min-width:46px;text-align:right;white-space:nowrap;font-size:13px;font-variant-numeric:tabular-nums;color:rgba(255,255,255,.7)}
 .bl-colour{position:relative}
 .bl-swatch{width:52px;height:34px;border:0;border-radius:10px;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25),0 2px 10px rgba(0,0,0,.35)}
 .bl-wheel-pop{position:absolute;right:0;top:calc(100% + 10px);z-index:3;display:flex;flex-direction:column;gap:12px;width:228px;padding:16px;border-radius:18px;background:#1d1d25;border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 70px rgba(0,0,0,.7);animation:bl-rise .2s cubic-bezier(.16,1,.3,1)}

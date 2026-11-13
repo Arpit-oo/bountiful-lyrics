@@ -166,6 +166,14 @@ describe("sanitizeSettings migration", () => {
     expect(sanitizeSettings({ display: "window" }).display).toBe("window");
     expect(sanitizeSettings({ display: "nope" }).display).toBe("page");
   });
+
+  it("leaves lyrics timing untouched by default and limits how far it can move", () => {
+    expect(sanitizeSettings({}).lyricsOffsetMs).toBe(0);
+    expect(sanitizeSettings({ lyricsOffsetMs: 150 }).lyricsOffsetMs).toBe(150);
+    expect(sanitizeSettings({ lyricsOffsetMs: 9000 }).lyricsOffsetMs).toBe(1000);
+    expect(sanitizeSettings({ lyricsOffsetMs: -9000 }).lyricsOffsetMs).toBe(-1000);
+    expect(sanitizeSettings({ lyricsOffsetMs: "soon" }).lyricsOffsetMs).toBe(0);
+  });
 });
 
 describe("focusScale", () => {

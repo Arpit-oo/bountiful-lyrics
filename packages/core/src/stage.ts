@@ -195,7 +195,8 @@ export class Stage {
   }
 
   update(positionMs: number): void {
-    if (this.lyrics && this.layers.lyrics) this.renderer?.update(positionMs);
+    // Only the words shift; the glow stays locked to the real beat.
+    if (this.lyrics && this.layers.lyrics) this.renderer?.update(positionMs + this.settings.lyricsOffsetMs);
     this.glow.update(positionMs);
     this.sky?.draw(performance.now(), reducedMotion());
   }
