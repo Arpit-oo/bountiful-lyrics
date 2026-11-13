@@ -17,15 +17,45 @@ Everything in `release/` is built and ready; the code all three share lives in `
 
 ## Install on Spotify
 
-You need Spotify desktop with [Spicetify](https://spicetify.app) already working.
+You need the Spotify desktop app (not the Microsoft Store version) with [Spicetify](https://spicetify.app).
 
-**From Spicetify Marketplace**
+### Step 1: install Spicetify (skip if you already have it)
 
-Open Marketplace in Spotify and go to the Extensions tab. New listings with few stars sit near the bottom of the default list, so either search for "Bountiful Lyrics" or set the sort (top of Marketplace) to "Last updated". Click Install on the card.
+Windows (PowerShell, not as administrator):
 
-If you installed it manually before, remove that copy first (see below) so it does not load twice.
+```powershell
+iwr -useb https://raw.githubusercontent.com/spicetify/cli/main/install.ps1 | iex
+```
 
-**Manually, on Windows (PowerShell)**
+macOS or Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/spicetify/cli/main/install.sh | sh
+```
+
+Close and reopen the terminal afterwards so the `spicetify` command is found. Check it with `spicetify -v`.
+
+### Step 2, option A: from Spicetify Marketplace
+
+1. Install or update Marketplace. **You need version 1.0.12 or newer.** Older versions stop loading the extension list partway through, so new extensions like this one never show up.
+
+   Windows (PowerShell):
+
+   ```powershell
+   iwr -useb https://raw.githubusercontent.com/spicetify/marketplace/main/resources/install.ps1 | iex
+   ```
+
+   macOS or Linux:
+
+   ```sh
+   curl -fsSL https://raw.githubusercontent.com/spicetify/marketplace/main/resources/install.sh | sh
+   ```
+
+2. In Spotify, click the cart icon at the top, open the **Extensions** tab, set **Sort by** to **Last Updated** (or type "Bountiful" in the search box) and click the download button on the **Bountiful Lyrics** card.
+
+### Step 2, option B: manual install
+
+Windows (PowerShell):
 
 ```powershell
 New-Item -ItemType Directory -Force "$env:APPDATA\spicetify\Extensions" | Out-Null
@@ -34,25 +64,44 @@ spicetify config extensions bountiful-lyrics.js
 spicetify apply
 ```
 
-**Manually, on macOS or Linux**
+macOS or Linux:
 
 ```sh
-mkdir -p ~/.config/spicetify/Extensions
-curl -fsSL "https://raw.githubusercontent.com/Arpit-oo/bountiful-lyrics/main/release/bountiful-lyrics.js" -o ~/.config/spicetify/Extensions/bountiful-lyrics.js
+mkdir -p "$(dirname "$(spicetify -c)")/Extensions"
+curl -fsSL "https://raw.githubusercontent.com/Arpit-oo/bountiful-lyrics/main/release/bountiful-lyrics.js" -o "$(dirname "$(spicetify -c)")/Extensions/bountiful-lyrics.js"
 spicetify config extensions bountiful-lyrics.js
 spicetify apply
 ```
 
 Spotify restarts. Open the lyrics with the star button in the top bar. If Spotify does not reopen, start it yourself.
 
-To update, run the same commands again. To remove it:
+Use only one of the two options. If you switch from manual to Marketplace, remove the manual copy first so it does not load twice.
 
-```
-spicetify config extensions bountiful-lyrics.js-
-spicetify apply
+### Update, remove, fix
+
+| Task | Command |
+|---|---|
+| Update a manual install | run the option B commands again |
+| Remove a manual install | `spicetify config extensions bountiful-lyrics.js-` then `spicetify apply` |
+| Remove a Marketplace install | Marketplace → Installed tab → Bountiful Lyrics → Remove |
+| It vanished after Spotify updated itself | `spicetify backup apply` |
+| Something broke, start clean | `spicetify restore` then `spicetify backup apply` |
+| See what is enabled | `spicetify config extensions` |
+
+## Install on YouTube Music (browser extension)
+
+No build needed. Get the files:
+
+```sh
+git clone https://github.com/Arpit-oo/bountiful-lyrics.git
 ```
 
-If it disappears after Spotify updates itself, run `spicetify backup apply`.
+or download the ZIP (green **Code** button on GitHub → **Download ZIP**) and unzip it.
+
+- **Chrome, Brave, Edge**: open `chrome://extensions` (or `brave://extensions`, `edge://extensions`), turn on **Developer mode**, click **Load unpacked**, pick the `release/youtube-music-chrome` folder.
+- **Firefox (121+)**: open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, pick `release/youtube-music-firefox/manifest.json`. It lasts until Firefox restarts.
+
+To update: `git pull` (or download the ZIP again), then click the reload icon on the extension's card.
 
 ## Develop
 

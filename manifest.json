@@ -4,6 +4,16 @@
   "preview": "docs/preview.png",
   "main": "release/bountiful-lyrics.js",
   "readme": "README.md",
+  "authors": [
+    {
+      "name": "Arpit-oo",
+      "url": "https://github.com/Arpit-oo"
+    }
+  ],
   "branch": "main",
-  "tags": ["lyrics", "visualizer", "fullscreen"]
+  "tags": [
+    "lyrics",
+    "visualizer",
+    "fullscreen"
+  ]
 }
