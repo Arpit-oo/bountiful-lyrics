@@ -98,10 +98,41 @@ git clone https://github.com/Arpit-oo/bountiful-lyrics.git
 
 or download the ZIP (green **Code** button on GitHub → **Download ZIP**) and unzip it.
 
-- **Chrome, Brave, Edge**: open `chrome://extensions` (or `brave://extensions`, `edge://extensions`), turn on **Developer mode**, click **Load unpacked**, pick the `release/youtube-music-chrome` folder.
-- **Firefox (121+)**: open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, pick `release/youtube-music-firefox/manifest.json`. It lasts until Firefox restarts.
+### Chrome, Brave, Edge
 
-To update: `git pull` (or download the ZIP again), then click the reload icon on the extension's card.
+1. Open `chrome://extensions` (Brave: `brave://extensions`, Edge: `edge://extensions`).
+2. Turn on **Developer mode** (top right; on Edge it's in the left sidebar).
+3. Click **Load unpacked**.
+4. Pick the `release/youtube-music-chrome` folder (the folder itself, not a file inside it).
+5. Open [music.youtube.com](https://music.youtube.com), play a song, and click the Bountiful Lyrics icon in the toolbar (pin it from the puzzle-piece menu) or press **Alt+L**.
+
+It stays installed after restarts. Chrome may show a "developer mode extensions" notice on launch; that's normal for unpacked extensions.
+
+### Firefox (121 or newer)
+
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on…**.
+3. Pick the file `release/youtube-music-firefox/manifest.json`.
+4. Open [music.youtube.com](https://music.youtube.com), play a song, and click the Bountiful Lyrics icon or press **Alt+L**.
+
+Firefox removes temporary add-ons when it closes, so repeat these steps after a restart. A permanent install needs the add-on signed by Mozilla.
+
+### Update
+
+Get the new files (`git pull`, or download the ZIP again into the same place), then:
+
+- **Chrome, Brave, Edge**: click the reload icon on the Bountiful Lyrics card in `chrome://extensions`, then refresh the YouTube Music tab.
+- **Firefox**: click **Reload** on the add-on in `about:debugging#/runtime/this-firefox`, then refresh the tab.
+
+### Optional: one side per singer in Texting
+
+Duets and features can show each singer on their own side. This needs a free Genius token:
+
+1. Go to [genius.com/api-clients](https://genius.com/api-clients), sign in, click **New API Client** (any name; website `http://localhost`).
+2. Click **Generate Access Token** and copy it.
+3. In YouTube Music: open Bountiful Lyrics → Settings → Lyrics → Texting → **Genius token**, paste, press Enter.
+
+The token is stored in the browser only and sent only to Genius. The extension keeps its own settings, separate from Spotify, so paste it in each place you use.
 
 ## Develop
 
