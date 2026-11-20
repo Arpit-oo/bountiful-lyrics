@@ -5,6 +5,7 @@ import type { SyncedLyrics } from "./lyrics/model";
 import type { BackgroundId, Settings } from "./settings";
 import { NightSky } from "./sky";
 import { ChatRenderer } from "./styles/chat";
+import type { LoudSegment } from "./timing/loudness";
 import { CodestyleRenderer } from "./styles/codestyle";
 import { ConstellationRenderer } from "./styles/constellation";
 import { FisheyeRenderer } from "./styles/fisheye";
@@ -44,6 +45,7 @@ export class Stage {
   private renderer: Renderer | null = null;
   private rendererStyle: Settings["style"] | null = null;
   private lyrics: SyncedLyrics | null = null;
+  private loudness: LoudSegment[] = [];
   private palette: Palette = FALLBACK_PALETTE;
   private background: ResolvedBackground = "none";
   private artUrl: string | null = null;
@@ -149,6 +151,7 @@ export class Stage {
     this.el.dataset.chatReactions = s.chatReactions ? "1" : "0";
     this.el.dataset.chatEmotes = s.chatEmotes ? "1" : "0";
     this.el.style.setProperty("--bl-chat-fx", String(s.chatEffect));
+    this.el.style.setProperty("--bl-chat-shout", String(s.chatShout));
     if (this.layers.glow) this.glow.apply(s, primary, secondary);
     else this.glow.el.hidden = true;
   }
@@ -158,6 +161,7 @@ export class Stage {
     this.rendererStyle = this.settings.style;
     this.el.dataset.style = this.settings.style;
     this.renderer = new RENDERERS[this.settings.style](this.lyricsHost);
+    this.renderer.setLoudness?.(this.loudness);
     if (this.lyrics) this.renderer.setLyrics(this.lyrics);
   }
 
@@ -204,6 +208,12 @@ export class Stage {
       g.restore();
     });
     this.bg.dataset.ambient = "1";
+  }
+
+  /** Loudness slices from audio analysis. Set before `setLyrics` so the first layout can use it. */
+  setLoudness(segments: LoudSegment[]): void {
+    this.loudness = segments;
+    this.renderer?.setLoudness?.(segments);
   }
 
   setBeats(beatsMs: number[]): void {

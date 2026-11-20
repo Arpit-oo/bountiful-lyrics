@@ -1,4 +1,4 @@
-import { argbToHex, buildSyncedLyrics, parseLrc, type Lyrics, type RawLine } from "@bountiful/core";
+import { argbToHex, buildSyncedLyrics, parseLrc, type LoudSegment, type Lyrics, type RawLine } from "@bountiful/core";
 
 export interface TrackInfo {
   uri: string;
@@ -102,13 +102,22 @@ export async function loadLyrics(track: TrackInfo): Promise<LyricsResult> {
   return result;
 }
 
-export async function loadBeats(track: TrackInfo): Promise<number[]> {
-  if (track.isLocal) return [];
+export interface AudioAnalysis {
+  beats: number[];
+  loudness: LoudSegment[];
+}
+
+export async function loadAnalysis(track: TrackInfo): Promise<AudioAnalysis> {
+  if (track.isLocal) return { beats: [], loudness: [] };
   try {
     const data = await Spicetify.getAudioData(track.uri);
-    return (data?.beats ?? []).map((b) => b.start * 1000);
+    const beats = (data?.beats ?? []).map((b) => b.start * 1000);
+    const loudness = (data?.segments ?? [])
+      .filter((s) => typeof s.loudness_max === "number")
+      .map((s) => ({ startMs: s.start * 1000, endMs: (s.start + s.duration) * 1000, loudness: s.loudness_max!, bright: s.timbre?.[1] ?? 0 }));
+    return { beats, loudness };
   } catch {
-    return [];
+    return { beats: [], loudness: [] };
   }
 }
 

@@ -1,4 +1,5 @@
 import { findStarted, type Line, type SyncedLyrics } from "../lyrics/model";
+import { isShouted, scoreLoudness, type LoudScores, type LoudSegment } from "../timing/loudness";
 import { findSticker, STICKERS } from "./stickers";
 import { el, hash, reducedMotion, rng, type Renderer } from "./types";
 
@@ -239,6 +240,7 @@ interface Msg {
   words: HTMLElement[];
   emote: boolean;
   shown: number;
+  loud: boolean;
   sticker: { box: HTMLElement; word: number; shown: boolean } | null;
   tapback: { node: HTMLElement; shown: boolean } | null;
 }
@@ -253,6 +255,8 @@ export class ChatRenderer implements Renderer {
   private msgs: Msg[] = [];
   private current = -2;
   private typingFor = -1;
+  private segments: LoudSegment[] = [];
+  private loud: LoudScores = { score: [], rank: [] };
 
   constructor(root: HTMLElement) {
     this.wrap = el("div", "bl-chat", root);
@@ -268,9 +272,21 @@ export class ChatRenderer implements Renderer {
   setLyrics(lyrics: SyncedLyrics): void {
     this.lines = lyrics.lines;
     this.plan = planChat(lyrics.lines, hash(lyrics.lines.map((l) => l.text).join("\n")));
+    this.loud = scoreLoudness(this.lines, this.segments);
     this.current = -2;
     this.typingFor = -1;
     this.clear();
+  }
+
+  setLoudness(segments: LoudSegment[]): void {
+    this.segments = segments;
+    this.loud = scoreLoudness(this.lines, segments);
+  }
+
+  /** Shout strength from settings: 0 = never shout, 1 = shout readily. */
+  private shout(): number {
+    const v = Number.parseFloat(getComputedStyle(this.wrap).getPropertyValue("--bl-chat-shout"));
+    return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.5;
   }
 
   private clear(): void {
@@ -311,6 +327,9 @@ export class ChatRenderer implements Renderer {
     const root = el("div", "bl-chat-msg");
     root.dataset.side = slot.side ? "me" : "them";
     root.dataset.pos = slot.pos;
+    // Lines sung far louder than the rest of the song come in ALL CAPS, like a shouted text.
+    const loud = isShouted(this.loud, index, this.shout());
+    if (loud) root.classList.add("bl-chat-loud");
     const bubble = el("div", "bl-chat-bubble", root);
     let textHost = bubble;
     if (slot.card) {
@@ -364,7 +383,7 @@ export class ChatRenderer implements Renderer {
       root.classList.add("bl-chat-has-tap");
       tapback = { node, shown: false };
     }
-    return { index, root, bubble, words, emote: Boolean(slot.emote), shown: 0, sticker, tapback };
+    return { index, root, bubble, words, emote: Boolean(slot.emote), shown: 0, loud, sticker, tapback };
   }
 
   /**
@@ -440,7 +459,28 @@ export class ChatRenderer implements Renderer {
       msg.words[i]!.animate([from, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: Math.round((emote ? 380 : 260) + 380 * f), delay: (i - before) * 70, fill: "backwards", easing: EASE });
     }
     // The bubble gives a tiny nudge with each word, so it feels like it's being typed live.
-    if (f > 0) msg.root.animate([{ transform: "scale(1)" }, { transform: `scale(${(1 + 0.035 * f).toFixed(3)})`, offset: 0.35 }, { transform: "scale(1)" }], { duration: 360, easing: "ease-out" });
+    const nudge = msg.loud ? 0.06 + 0.04 * f : 0.035 * f;
+    if (nudge > 0) msg.root.animate([{ transform: "scale(1)" }, { transform: `scale(${(1 + nudge).toFixed(3)})`, offset: 0.35 }, { transform: "scale(1)" }], { duration: 360, easing: "ease-out" });
+  }
+
+  /** iMessage's "Loud" effect: the bubble lands huge, snaps down to size and shakes the screen. */
+  private slam(msg: Msg): void {
+    msg.bubble.animate(
+      [
+        { opacity: 0, scale: "2.3" },
+        { opacity: 1, scale: "0.94", offset: 0.32 },
+        { scale: "1.05", translate: "-.1em 0", offset: 0.46 },
+        { scale: "1", translate: ".1em 0", offset: 0.58 },
+        { translate: "-.06em 0", offset: 0.7 },
+        { translate: ".03em 0", offset: 0.82 },
+        { opacity: 1, scale: "1", translate: "0 0" },
+      ],
+      { duration: 760, easing: "cubic-bezier(.2,.8,.3,1)" },
+    );
+    this.wrap.animate(
+      [{ translate: "0 0" }, { translate: ".07em .03em", offset: 0.3 }, { translate: "-.06em -.02em", offset: 0.5 }, { translate: ".03em 0", offset: 0.7 }, { translate: "0 0" }],
+      { duration: 420, delay: 200 },
+    );
   }
 
   /** A sticker smacks down from above, overshoots a little, and settles. */
@@ -509,6 +549,11 @@ export class ChatRenderer implements Renderer {
     const origin = msg.root.dataset.side === "me" ? "100% 100%" : "0 100%";
     msg.bubble.style.transformOrigin = origin;
     const f = this.fx();
+    if (msg.loud) {
+      this.slam(msg);
+      if (msg.sticker?.shown) this.slap(msg.sticker.box, 420);
+      return;
+    }
     const turn = (msg.root.dataset.side === "me" ? 1 : -1) * 7 * f;
     msg.bubble.animate(
       [{ opacity: 0, transform: `scale(${(0.9 - 0.4 * f).toFixed(2)}) translateY(${Math.round(10 + 25 * f)}%) rotate(${turn.toFixed(1)}deg)` }, { opacity: 1, transform: `scale(${(1 + 0.04 * f).toFixed(3)})`, offset: 0.7 }, { opacity: 1, transform: "none" }],

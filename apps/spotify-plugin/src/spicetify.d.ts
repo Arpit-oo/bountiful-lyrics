@@ -33,7 +33,10 @@ declare const Spicetify: {
   LocalStorage: { get(key: string): string | null; set(key: string, value: string): void };
   Topbar: { Button: new (label: string, icon: string, onClick: () => void) => unknown };
   Playbar?: { Button: new (label: string, icon: string, onClick: () => void, disabled?: boolean, active?: boolean, registerOnCreate?: boolean) => unknown };
-  getAudioData(uri?: string): Promise<{ beats?: Array<{ start: number; confidence?: number }> } | null>;
+  getAudioData(uri?: string): Promise<{
+    beats?: Array<{ start: number; confidence?: number }>;
+    segments?: Array<{ start: number; duration: number; loudness_max?: number; timbre?: number[] }>;
+  } | null>;
 };
 
 interface DocumentPictureInPicture {

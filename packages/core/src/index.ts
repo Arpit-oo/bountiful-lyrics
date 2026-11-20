@@ -7,5 +7,6 @@ export * from "./settings";
 export * from "./stage";
 export * from "./timing/clock";
 export * from "./timing/estimate";
+export * from "./timing/loudness";
 export * from "./ui/overlay-css";
 export * from "./ui/settings-dialog";

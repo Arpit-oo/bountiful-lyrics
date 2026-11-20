@@ -59,6 +59,8 @@ export interface Settings {
   chatReactions: boolean;
   /** Chat: text emoticons like :) at the end of some messages. */
   chatEmotes: boolean;
+  /** Chat: how readily the loudest lines come in ALL CAPS with a slam, 0 = never. */
+  chatShout: number;
   companion: boolean;
 }
 
@@ -93,6 +95,7 @@ export const DEFAULT_SETTINGS: Settings = {
   chatStickers: true,
   chatReactions: true,
   chatEmotes: true,
+  chatShout: 0.5,
   companion: true,
 };
 
@@ -142,6 +145,7 @@ export function sanitizeSettings(input: unknown): Settings {
     chatStickers: bool(v.chatStickers, d.chatStickers),
     chatReactions: bool(v.chatReactions, d.chatReactions),
     chatEmotes: bool(v.chatEmotes, d.chatEmotes),
+    chatShout: clamp(v.chatShout, 0, 1, d.chatShout),
     companion: bool(v.companion, d.companion),
   };
 }

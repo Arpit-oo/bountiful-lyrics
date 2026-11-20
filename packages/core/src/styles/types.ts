@@ -1,7 +1,10 @@
+import type { LoudSegment } from "../timing/loudness";
 import type { SyncedLyrics } from "../lyrics/model";
 
 export interface Renderer {
   setLyrics(lyrics: SyncedLyrics): void;
+  /** Per-slice loudness from audio analysis, for styles that react to how hard a line is sung. */
+  setLoudness?(segments: LoudSegment[]): void;
   update(positionMs: number): void;
   destroy(): void;
 }

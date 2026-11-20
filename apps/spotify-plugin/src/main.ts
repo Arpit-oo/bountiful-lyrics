@@ -18,7 +18,7 @@ import {
 } from "@bountiful/core";
 import type { ControlMessage } from "@bountiful/protocol";
 import { CompanionLink } from "./companion";
-import { artUrlFor, loadBeats, loadLyrics, type TrackInfo } from "./providers";
+import { artUrlFor, loadAnalysis, loadLyrics, type TrackInfo } from "./providers";
 
 const STORAGE_KEY = "bountiful-lyrics:settings";
 const IDLE_MS = 2800;
@@ -612,22 +612,25 @@ class App {
     this.beats = [];
     this.stage.setLyrics(null);
     this.stage.setBeats([]);
+    this.stage.setLoudness([]);
     this.statusEl.textContent = "Finding lyrics";
     this.renderView();
 
-    const [result, beats, sampled] = await Promise.all([
+    const [result, analysis, sampled] = await Promise.all([
       loadLyrics(track),
-      loadBeats(track),
+      loadAnalysis(track),
       this.artUrl ? sampleArt(this.artUrl) : Promise.resolve(null),
     ]);
     if (token !== this.loadToken) return;
 
     this.lyrics = result.lyrics;
+    const beats = analysis.beats;
     this.beats = beats;
     this.palette = sampled ?? (result.fallbackColor ? { primary: result.fallbackColor, secondary: mix(result.fallbackColor, "#ffffff", 0.45) } : FALLBACK_PALETTE);
     this.stage.setPalette(this.palette);
     this.root.style.setProperty("--bl-accent", this.palette.primary);
     this.stage.setBeats(beats);
+    this.stage.setLoudness(analysis.loudness);
     this.stage.setLyrics(this.lyrics?.kind === "synced" ? this.lyrics : null);
     this.statusEl.textContent = this.lyrics ? "" : "No lyrics found for this track";
     this.renderPlain();

@@ -151,3 +151,11 @@ describe("chat toggles", () => {
     }
   });
 });
+
+describe("shout setting", () => {
+  it("defaults to half and clamps", () => {
+    expect(DEFAULT_SETTINGS.chatShout).toBe(0.5);
+    expect(sanitizeSettings({ chatShout: 3 }).chatShout).toBe(1);
+    expect(sanitizeSettings({ chatShout: -1 }).chatShout).toBe(0);
+  });
+});

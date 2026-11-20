@@ -423,6 +423,7 @@ export function openSettings(host: HTMLElement, settings: Settings, onChange: Ch
           row("Your bubbles", colorWheel(s.chatMeColor, "Your bubbles", (chatMeColor) => set({ chatMeColor })), "Messages on the right"),
           row("Their bubbles", colorWheel(s.chatThemColor, "Their bubbles", (chatThemColor) => set({ chatThemColor })), "Messages on the left"),
           row("Effect strength", slider(0, 1, 0.05, s.chatEffect, (v) => (v === 0 ? "Off" : `${Math.round(v * 100)}%`), "Effect strength", (chatEffect) => set({ chatEffect })), "How much each word swirls in as it's sung"),
+          row("Shouting", slider(0, 1, 0.05, s.chatShout, (v) => (v === 0 ? "Off" : `${Math.round(v * 100)}%`), "Shouting", (chatShout) => set({ chatShout })), "The loudest, harshest lines come in ALL CAPS and slam in. Needs Spotify's audio analysis"),
           row("Location cards", toggle(s.chatCards, "Location cards", (chatCards) => set({ chatCards })), "Some lines arrive as a shared map location"),
           row("Stickers", toggle(s.chatStickers, "Stickers", (chatStickers) => set({ chatStickers })), "Big stickers for words like home, car or rose"),
           row("Reactions", toggle(s.chatReactions, "Reactions", (chatReactions) => set({ chatReactions })), "Hearts, likes, HA HA and !! on some bubbles"),
