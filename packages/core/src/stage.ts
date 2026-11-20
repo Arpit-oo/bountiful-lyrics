@@ -46,6 +46,7 @@ export class Stage {
   private rendererStyle: Settings["style"] | null = null;
   private lyrics: SyncedLyrics | null = null;
   private loudness: LoudSegment[] = [];
+  private singers: Array<string[] | null> | null = null;
   private palette: Palette = FALLBACK_PALETTE;
   private background: ResolvedBackground = "none";
   private artUrl: string | null = null;
@@ -75,7 +76,12 @@ export class Stage {
     this.applySettings(settings);
   }
 
+  private activeSingers(): Array<string[] | null> | null {
+    return this.settings.chatSingers ? this.singers : null;
+  }
+
   applySettings(settings: Settings): void {
+    const singersWere = this.settings.chatSingers;
     this.settings = settings;
     this.el.style.setProperty("--bl-font", FONT_STACKS[settings.font]);
     // Garden keeps its serif unless a different face is picked.
@@ -86,6 +92,7 @@ export class Stage {
     this.el.style.setProperty("--bl-tilt", String(settings.tilt));
     this.el.dataset.tilt = settings.tilt > 0 ? "1" : "0";
     if (this.rendererStyle !== settings.style) this.mountRenderer();
+    else if (singersWere !== settings.chatSingers) this.renderer?.setSingers?.(this.activeSingers());
     this.setBackground(resolveBackground(settings, this.layers.transparent));
     this.applyColors();
   }
@@ -162,11 +169,15 @@ export class Stage {
     this.el.dataset.style = this.settings.style;
     this.renderer = new RENDERERS[this.settings.style](this.lyricsHost);
     this.renderer.setLoudness?.(this.loudness);
-    if (this.lyrics) this.renderer.setLyrics(this.lyrics);
+    if (this.lyrics) {
+      this.renderer.setLyrics(this.lyrics);
+      this.renderer.setSingers?.(this.activeSingers());
+    }
   }
 
   setLyrics(lyrics: SyncedLyrics | null): void {
     this.lyrics = lyrics;
+    this.singers = null;
     this.lyricsHost.style.visibility = lyrics ? "" : "hidden";
     if (lyrics) this.renderer?.setLyrics(lyrics);
   }
@@ -208,6 +219,12 @@ export class Stage {
       g.restore();
     });
     this.bg.dataset.ambient = "1";
+  }
+
+  /** Who sings each line of the current lyrics, from Genius. Call after `setLyrics`. */
+  setSingers(singers: Array<string[] | null> | null): void {
+    this.singers = singers;
+    this.renderer?.setSingers?.(this.activeSingers());
   }
 
   /** Loudness slices from audio analysis. Set before `setLyrics` so the first layout can use it. */

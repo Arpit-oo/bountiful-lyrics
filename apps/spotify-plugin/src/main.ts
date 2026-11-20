@@ -1,21 +1,4 @@
-import {
-  CORE_CSS,
-  FALLBACK_PALETTE,
-  FONT_CSS,
-  mix,
-  openSettings,
-  OVERLAY_CSS,
-  paletteFromPixels,
-  PlaybackClock,
-  sanitizeSettings,
-  Stage,
-  GLOW_ANIMATIONS,
-  STYLE_IDS,
-  type DisplayId,
-  type Lyrics,
-  type Palette,
-  type Settings,
-} from "@bountiful/core";
+import { assignSingers, CORE_CSS, type DisplayId, FALLBACK_PALETTE, fetchGeniusSections, FONT_CSS, GLOW_ANIMATIONS, type Lyrics, mix, openSettings, OVERLAY_CSS, type Palette, paletteFromPixels, PlaybackClock, sanitizeSettings, type Settings, Stage, STYLE_IDS } from "@bountiful/core";
 import type { ControlMessage } from "@bountiful/protocol";
 import { CompanionLink } from "./companion";
 import { artUrlFor, loadAnalysis, loadLyrics, type TrackInfo } from "./providers";
@@ -155,6 +138,7 @@ class App {
   private artUrl: string | null = null;
   private beats: number[] = [];
   private trackUri: string | null = null;
+  private currentTrack: TrackInfo | null = null;
   private loadToken = 0;
   private showLyrics = true;
   private isOpen = false;
@@ -417,6 +401,19 @@ class App {
     }
   }
 
+  /** Who sings which line, from Genius. Only runs with the user's own token; arrives after the lyrics. */
+  private async loadSingers(track: TrackInfo, token: number): Promise<void> {
+    const key = this.settings.geniusToken;
+    const lyrics = this.lyrics;
+    if (!key || lyrics?.kind !== "synced") {
+      if (!key) this.stage.setSingers(null);
+      return;
+    }
+    const sections = await fetchGeniusSections(track.title, track.artist, key);
+    if (token !== this.loadToken || this.lyrics !== lyrics) return;
+    this.stage.setSingers(sections ? assignSingers(lyrics.lines, sections, track.artist) : null);
+  }
+
   private updateSettings(patch: Partial<Settings>): void {
     const displayChanged = patch.display !== undefined && patch.display !== this.settings.display;
     this.settings = sanitizeSettings({ ...this.settings, ...patch });
@@ -429,7 +426,9 @@ class App {
     this.stage.setBeats(this.beats);
     this.paintBgButton();
     this.companion.setEnabled(this.settings.companion);
-    this.companion.send({ type: "settings", settings: this.settings });
+    this.companion.send({ type: "settings", settings: { ...this.settings, geniusToken: "" } });
+    // A new Genius token: look up the singers for the song that's playing now.
+    if (patch.geniusToken !== undefined && this.currentTrack && this.lyrics?.kind === "synced") void this.loadSingers(this.currentTrack, this.loadToken);
     // Picking "Open in" from settings moves the view right away (pop-out needs this click).
     if (displayChanged && this.isOpen && this.mode !== this.settings.display) void this.open(this.settings.display);
   }
@@ -595,6 +594,7 @@ class App {
     if (!current || current.track.uri === this.trackUri) return;
     const { track, raw } = current;
     this.trackUri = track.uri;
+    this.currentTrack = track;
     const token = ++this.loadToken;
 
     this.titleEl.textContent = track.title;
@@ -632,6 +632,7 @@ class App {
     this.stage.setBeats(beats);
     this.stage.setLoudness(analysis.loudness);
     this.stage.setLyrics(this.lyrics?.kind === "synced" ? this.lyrics : null);
+    if (this.lyrics?.kind === "synced") void this.loadSingers(track, token);
     this.statusEl.textContent = this.lyrics ? "" : "No lyrics found for this track";
     this.renderPlain();
     this.renderView();
@@ -668,7 +669,7 @@ class App {
       this.companion.send({ type: "track", title: current.track.title, artist: current.track.artist, durationMs: current.track.durationMs, artUrl: this.artUrl?.startsWith("https://i.scdn.co/image/") ? this.artUrl : null, beats: this.beats });
     }
     this.companion.send({ type: "theme", palette: this.palette });
-    this.companion.send({ type: "settings", settings: this.settings });
+    this.companion.send({ type: "settings", settings: { ...this.settings, geniusToken: "" } });
     this.companion.send({ type: "lyrics", lyrics: this.lyrics?.kind === "synced" ? this.lyrics : null });
     this.companion.send({ type: "clock", positionMs: this.clock.position(), playing: this.clock.isPlaying(), volume: Spicetify.Player.getVolume() });
   }

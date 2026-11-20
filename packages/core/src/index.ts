@@ -1,6 +1,7 @@
 export * from "./color";
 export * from "./css";
 export * from "./fonts";
+export * from "./lyrics/genius";
 export * from "./lyrics/lrc";
 export * from "./lyrics/model";
 export * from "./settings";

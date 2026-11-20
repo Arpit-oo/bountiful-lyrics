@@ -66,6 +66,7 @@ export const CORE_CSS = `
 .bl-chat-msg[data-side="me"][data-pos="mid"] .bl-chat-bubble,.bl-chat-msg[data-side="me"][data-pos="last"] .bl-chat-bubble{border-top-right-radius:.3em}
 .bl-chat-msg[data-pos="single"] .bl-chat-bubble:not(.bl-chat-card)::after,.bl-chat-msg[data-pos="last"] .bl-chat-bubble:not(.bl-chat-card)::after{content:"";position:absolute;bottom:0;left:-.3em;width:.8em;height:.8em;background:inherit;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 0C8 9 5 16 0 20c7 0 13-2 18-6V0z'/%3E%3C/svg%3E") no-repeat 0 0/100% 100%;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 0C8 9 5 16 0 20c7 0 13-2 18-6V0z'/%3E%3C/svg%3E") no-repeat 0 0/100% 100%;-webkit-backdrop-filter:none;backdrop-filter:none}
 .bl-chat-msg[data-side="me"] .bl-chat-bubble:not(.bl-chat-card)::after{left:auto;right:-.3em;transform:scaleX(-1)}
+.bl-chat-name{margin:0 .95em .14em;font-size:.5em;font-weight:680;letter-spacing:.01em;color:rgba(255,255,255,.72);text-shadow:0 1px 6px rgba(0,0,0,.45)}
 .bl-chat-w{display:inline-block;white-space:pre-wrap}
 .bl-chat-loud .bl-chat-bubble{font-size:1.16em;font-weight:840;text-transform:uppercase;letter-spacing:.012em}
 .bl-chat-loud .bl-chat-card-place,.bl-chat-loud .bl-chat-map-label{text-transform:none}

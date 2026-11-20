@@ -1,5 +1,6 @@
 import { findStarted, type Line, type SyncedLyrics } from "../lyrics/model";
 import { isShouted, scoreLoudness, type LoudScores, type LoudSegment } from "../timing/loudness";
+import { singerSides } from "../lyrics/genius";
 import { findSticker, STICKERS } from "./stickers";
 import { el, hash, reducedMotion, rng, type Renderer } from "./types";
 
@@ -21,7 +22,12 @@ export interface ChatSlot {
   sticker: { id: number; word: number; mode: "solo" | "peel" } | null;
   /** An iMessage-style reaction the other person leaves on this bubble once it's sent. */
   tapback: Tapback | null;
+  /** Who is "texting", shown above the first bubble of a run when singers are known. */
+  name: string | null;
 }
+
+/** Side and name per line when the singers are known. */
+export type ChatVoices = { side: Array<ChatSide | null>; name: Array<string | null> };
 
 export type Tapback = "heart" | "like" | "haha" | "bang" | "ask";
 
@@ -82,7 +88,7 @@ const isBlank = (line: Pick<Line, "text">): boolean => !line.text.trim() || /^[â
  * Decides who "sends" each line and which lines become location cards.
  * Same seed, same conversation, so a song always plays out the same way.
  */
-export function planChat(lines: Array<Pick<Line, "text" | "startMs" | "endMs"> & { words?: Array<{ text: string }> }>, seed: number): Array<ChatSlot | null> {
+export function planChat(lines: Array<Pick<Line, "text" | "startMs" | "endMs"> & { words?: Array<{ text: string }> }>, seed: number, voices: ChatVoices | null = null): Array<ChatSlot | null> {
   const rand = rng(seed);
   const out: Array<ChatSlot | null> = [];
   let side: ChatSide = 0;
@@ -100,7 +106,11 @@ export function planChat(lines: Array<Pick<Line, "text" | "startMs" | "endMs"> &
       out.push(null);
       continue;
     }
-    if (!first) {
+    const index = out.length;
+    if (voices) {
+      // Real singers: each voice keeps its own side; unknown lines stay with whoever sang last.
+      side = voices.side[index] ?? side;
+    } else if (!first) {
       // A long silence ends a run early, but never leaves a lone message.
       const pause = line.startMs - prevEnd >= PAUSE_MS && left < 2;
       if (left <= 0 || pause) {
@@ -148,12 +158,14 @@ export function planChat(lines: Array<Pick<Line, "text" | "startMs" | "endMs"> &
       tapback = pickTapback(line.text, rand);
       untilTap = 7 + Math.floor(rand() * 5);
     }
-    out.push({ side, pos: "single", card, emote, sticker, tapback });
+    out.push({ side, pos: "single", card, emote, sticker, tapback, name: voices ? (voices.name[index] ?? null) : null });
     prevEnd = line.endMs;
     first = false;
   }
   // Mark run positions so only the last bubble of a run carries the tail.
   const filled = out.map((s, i) => (s ? i : -1)).filter((i) => i >= 0);
+  // Original names, read before the loop below clears repeats.
+  const names = out.map((s) => s?.name ?? null);
   filled.forEach((index, k) => {
     const slot = out[index]!;
     const prev = k > 0 ? out[filled[k - 1]!]! : null;
@@ -161,6 +173,8 @@ export function planChat(lines: Array<Pick<Line, "text" | "startMs" | "endMs"> &
     const joinPrev = prev?.side === slot.side;
     const joinNext = next?.side === slot.side;
     slot.pos = joinPrev ? (joinNext ? "mid" : "last") : joinNext ? "first" : "single";
+    // Name labels only where the sender changes, like a group chat.
+    if (joinPrev && k > 0 && names[filled[k - 1]!] === names[index]) slot.name = null;
   });
   return out;
 }
@@ -256,6 +270,8 @@ export class ChatRenderer implements Renderer {
   private current = -2;
   private typingFor = -1;
   private segments: LoudSegment[] = [];
+  private voices: ChatVoices | null = null;
+  private seed = 0;
   private loud: LoudScores = { score: [], rank: [] };
 
   constructor(root: HTMLElement) {
@@ -271,11 +287,22 @@ export class ChatRenderer implements Renderer {
 
   setLyrics(lyrics: SyncedLyrics): void {
     this.lines = lyrics.lines;
-    this.plan = planChat(lyrics.lines, hash(lyrics.lines.map((l) => l.text).join("\n")));
+    this.seed = hash(lyrics.lines.map((l) => l.text).join("\n"));
+    this.voices = null;
+    this.plan = planChat(lyrics.lines, this.seed);
     this.loud = scoreLoudness(this.lines, this.segments);
     this.current = -2;
     this.typingFor = -1;
     this.clear();
+  }
+
+  setSingers(singers: Array<string[] | null> | null): void {
+    const voices = singers && singers.length === this.lines.length ? singerSides(singers) : null;
+    if (!voices && !this.voices) return;
+    this.voices = voices;
+    this.plan = planChat(this.lines, this.seed, voices);
+    // Lay the conversation out again with the new sides on the next frame.
+    this.current = -2;
   }
 
   setLoudness(segments: LoudSegment[]): void {
@@ -327,6 +354,10 @@ export class ChatRenderer implements Renderer {
     const root = el("div", "bl-chat-msg");
     root.dataset.side = slot.side ? "me" : "them";
     root.dataset.pos = slot.pos;
+    if (slot.name) {
+      const name = el("div", "bl-chat-name", root);
+      name.textContent = slot.name;
+    }
     // Lines sung far louder than the rest of the song come in ALL CAPS, like a shouted text.
     const loud = isShouted(this.loud, index, this.shout());
     if (loud) root.classList.add("bl-chat-loud");

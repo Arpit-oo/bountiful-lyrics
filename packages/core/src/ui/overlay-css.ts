@@ -149,6 +149,7 @@ export const OVERLAY_CSS = `
 .bl-wheel-value{-webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:7px;background:linear-gradient(90deg,#000,var(--bl-hue,#fff));cursor:pointer}
 .bl-wheel-value::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.3)}
 .bl-wheel-row{display:flex}
+.bl-token{width:220px;text-transform:none}
 .bl-wheel-hex{width:100%;height:34px;padding:0 10px;border:1px solid rgba(255,255,255,.14);border-radius:9px;background:#14141a;color:#fff;font:600 13px "BL Mono",Consolas,monospace;text-transform:lowercase}
 .bl-wheel-presets{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .bl-wheel-preset{aspect-ratio:1;border:0;border-radius:7px;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}

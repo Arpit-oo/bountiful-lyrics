@@ -69,6 +69,29 @@ function row(label: string, control: HTMLElement, hint?: string): HTMLElement {
   return r;
 }
 
+/** A password-style box for the Genius token; saves when you leave the field or press Enter. */
+function geniusInput(current: string, onChange: (v: string) => void): HTMLElement {
+  const i = h("input", "bl-wheel-hex bl-token");
+  i.type = "password";
+  i.value = current;
+  i.placeholder = "Paste token";
+  i.autocomplete = "off";
+  i.spellcheck = false;
+  i.setAttribute("aria-label", "Genius token");
+  const commit = () => {
+    const v = i.value.trim();
+    if (v !== current) {
+      current = v;
+      onChange(v);
+    }
+  };
+  i.addEventListener("change", commit);
+  i.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") commit();
+  });
+  return i;
+}
+
 function toggle(current: boolean, label: string, onChange: (v: boolean) => void): HTMLButtonElement {
   const b = h("button", "bl-switch");
   b.type = "button";
@@ -428,6 +451,8 @@ export function openSettings(host: HTMLElement, settings: Settings, onChange: Ch
           row("Stickers", toggle(s.chatStickers, "Stickers", (chatStickers) => set({ chatStickers })), "Big stickers for words like home, car or rose"),
           row("Reactions", toggle(s.chatReactions, "Reactions", (chatReactions) => set({ chatReactions })), "Hearts, likes, HA HA and !! on some bubbles"),
           row("Text emoticons", toggle(s.chatEmotes, "Text emoticons", (chatEmotes) => set({ chatEmotes })), "Little :) and :( at the end of some messages"),
+          row("One side per singer", toggle(s.chatSingers, "One side per singer", (chatSingers) => set({ chatSingers })), "Duets and features: each singer texts from their own side, with their name. Needs a Genius token"),
+          row("Genius token", geniusInput(s.geniusToken, (geniusToken) => set({ geniusToken })), "Free: genius.com/api-clients → New API Client → Generate Access Token. Paste it here. Only sent to Genius"),
           row("Bubble colours", resetChat, "Back to blue and dark grey"),
         ),
       );

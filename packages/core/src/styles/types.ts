@@ -5,6 +5,8 @@ export interface Renderer {
   setLyrics(lyrics: SyncedLyrics): void;
   /** Per-slice loudness from audio analysis, for styles that react to how hard a line is sung. */
   setLoudness?(segments: LoudSegment[]): void;
+  /** Who sings each line (null when unknown), or null to forget. Index-aligned with the lyrics. */
+  setSingers?(singers: Array<string[] | null> | null): void;
   update(positionMs: number): void;
   destroy(): void;
 }

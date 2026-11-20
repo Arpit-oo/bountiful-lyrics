@@ -61,6 +61,10 @@ export interface Settings {
   chatEmotes: boolean;
   /** Chat: how readily the loudest lines come in ALL CAPS with a slam, 0 = never. */
   chatShout: number;
+  /** Chat: put each singer on their own side, using Genius credits. */
+  chatSingers: boolean;
+  /** The user's own Genius API token, used only to look songs up on api.genius.com. */
+  geniusToken: string;
   companion: boolean;
 }
 
@@ -96,6 +100,8 @@ export const DEFAULT_SETTINGS: Settings = {
   chatReactions: true,
   chatEmotes: true,
   chatShout: 0.5,
+  chatSingers: true,
+  geniusToken: "",
   companion: true,
 };
 
@@ -108,6 +114,8 @@ function oneOf<T extends string>(allowed: readonly T[], value: unknown, fallback
 
 const bool = (value: unknown, fallback: boolean): boolean => (typeof value === "boolean" ? value : fallback);
 const color = (value: unknown, fallback: string): string => (isHexColor(value) ? value : fallback);
+/** API tokens are plain URL-safe strings; anything else is dropped. */
+const token = (value: unknown): string => (typeof value === "string" && /^[A-Za-z0-9_-]{1,200}$/.test(value.trim()) ? value.trim() : "");
 
 /** Accepts untrusted stored or received data and returns complete, valid settings. */
 export function sanitizeSettings(input: unknown): Settings {
@@ -146,6 +154,8 @@ export function sanitizeSettings(input: unknown): Settings {
     chatReactions: bool(v.chatReactions, d.chatReactions),
     chatEmotes: bool(v.chatEmotes, d.chatEmotes),
     chatShout: clamp(v.chatShout, 0, 1, d.chatShout),
+    chatSingers: bool(v.chatSingers, d.chatSingers),
+    geniusToken: token(v.geniusToken),
     companion: bool(v.companion, d.companion),
   };
 }
