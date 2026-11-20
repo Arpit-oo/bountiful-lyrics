@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assignSingers, parseEmbed, parseSections, parseSingers, singerSides } from "../src/lyrics/genius";
+import { assignSingers, parseEmbed, parseSections, parseSingers, singerSides, skeleton } from "../src/lyrics/genius";
 import { sanitizeSettings } from "../src/settings";
 import { planChat } from "../src/styles/chat";
 
@@ -108,5 +108,49 @@ describe("name labels", () => {
     const voices = { side: [1, 1, 1, 1, 1, 0, 0, 0] as Array<0 | 1 | null>, name: ["Mike", "Mike", "Mike", "Mike", "Mike", "Chester", "Chester", "Chester"] };
     const plan = planChat(lines, 2, voices);
     expect(plan.map((s) => s!.name)).toEqual(["Mike", null, null, null, null, "Chester", null, null]);
+  });
+});
+
+describe("matching across scripts", () => {
+  it("gives romanized and Indic-script lines the same sound skeleton", () => {
+    expect(skeleton("ਤੇਰੇ ਨਖ਼ਰੇ ਜਵਾਨੀ ਵਾਲ਼ੇ")).toBe(skeleton("Tere nakhre jawani wale"));
+    expect(skeleton("दिल तो पागल है")).toBe(skeleton("Dil toh pagal hai"));
+  });
+
+  it("matches romanized Genius lyrics to Gurmukhi timed lyrics", () => {
+    const sections = parseSections(`[Verse 1: Ana]
+Tere nakhre jawani wale
+Kariye vi das hun ki kariye
+
+[Verse 2: Ben]
+Dil toh pagal hai
+Saade dohaan vichkaar teri chupp`);
+    const timed = ["ਤੇਰੇ ਨਖ਼ਰੇ ਜਵਾਨੀ ਵਾਲ਼ੇ", "ਕਰੀਏ ਵੀ ਦੱਸ ਹੁਣ ਕੀ ਕਰੀਏ", "ਦਿਲ ਤੋ ਪਾਗਲ ਹੈ", "ਸਾਡੇ ਦੋਹਾਂ ਵਿਚਕਾਰ ਤੇਰੀ ਚੁੱਪ"].map((text) => ({ text }));
+    expect(assignSingers(timed, sections, "Main")).toEqual([["Ana"], ["Ana"], ["Ben"], ["Ben"]]);
+  });
+
+  it("falls back to line position for scripts it can't compare", () => {
+    const sections = parseSections(`[Verse: Ana]
+uno
+dos
+
+[Verse: Ben]
+tres
+cuatro`);
+    const timed = ["사랑해", "보고 싶어", "어디야", "잘 자"].map((text) => ({ text }));
+    expect(assignSingers(timed, sections, "Main")).toEqual([["Ana"], ["Ana"], ["Ben"], ["Ben"]]);
+  });
+});
+
+describe("group credits", () => {
+  it("reads [Chorus: Both] as the two main voices", () => {
+    const sections = parseSections(`[Verse 1: Ana]
+one two three four
+[Verse 2: Ben]
+five six seven eight
+[Chorus: Both]
+nine ten eleven twelve`);
+    const timed = ["one two three four", "five six seven eight", "nine ten eleven twelve"].map((text) => ({ text }));
+    expect(assignSingers(timed, sections, "Main")).toEqual([["Ana"], ["Ben"], ["Ana", "Ben"]]);
   });
 });
