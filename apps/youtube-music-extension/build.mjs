@@ -9,7 +9,7 @@ const shared = {
   target: ["chrome120", "firefox121"],
   charset: "utf8",
   legalComments: "none",
-  loader: { ".woff2": "dataurl" },
+  loader: { ".woff2": "dataurl", ".ttf": "dataurl", ".otf": "dataurl" },
 };
 
 const template = JSON.parse(readFileSync("manifest.template.json", "utf8"));

@@ -8,12 +8,14 @@ import fredoka from "@fontsource-variable/fredoka/files/fredoka-latin-wght-norma
 import gluten from "@fontsource-variable/gluten/files/gluten-latin-wght-normal.woff2";
 import mono from "@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2";
 import jakarta from "@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2";
+import electro from "../assets/fonts/electroharmonix.otf";
+import samarkan from "../assets/fonts/samarkan.ttf";
 import type { FontId } from "./settings";
 
 // Single-weight display faces also claim the full weight range, so the browser uses them as drawn
 // instead of faking a bold version.
-const face = (family: string, url: string) =>
-  `@font-face{font-family:"${family}";src:url(${url}) format("woff2");font-weight:100 900;font-display:swap}`;
+const face = (family: string, url: string, format = "woff2") =>
+  `@font-face{font-family:"${family}";src:url(${url}) format("${format}");font-weight:100 900;font-display:swap}`;
 
 export const FONT_CSS = [
   face("BL Jakarta", jakarta),
@@ -26,6 +28,8 @@ export const FONT_CSS = [
   face("BL Anton", anton),
   face("BL Fredoka", fredoka),
   face("BL Gluten", gluten),
+  face("BL Samarkan", samarkan, "truetype"),
+  face("BL Electro", electro, "opentype"),
 ].join("");
 
 export const FONT_STACKS: Record<FontId, string> = {
@@ -38,6 +42,8 @@ export const FONT_STACKS: Record<FontId, string> = {
   anton: `"BL Anton", "BL Jakarta", sans-serif`,
   fredoka: `"BL Fredoka", "BL Jakarta", sans-serif`,
   gluten: `"BL Gluten", "BL Jakarta", sans-serif`,
+  samarkan: `"BL Samarkan", "BL Jakarta", sans-serif`,
+  electro: `"BL Electro", "BL Jakarta", sans-serif`,
   mono: `"BL Mono", Consolas, monospace`,
 };
 
@@ -51,5 +57,7 @@ export const FONT_LABELS: Record<FontId, string> = {
   anton: "Anton (tall poster)",
   fredoka: "Fredoka (soft round)",
   gluten: "Gluten (playful)",
+  samarkan: "Samarkan (Devanagari-style)",
+  electro: "Electroharmonix (sci-fi)",
   mono: "JetBrains Mono",
 };
