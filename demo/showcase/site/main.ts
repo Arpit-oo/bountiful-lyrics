@@ -125,6 +125,7 @@ const groups: Item[][] = [
     { label: "Garden", key: "style", patch: { style: "garden", background: "auto" }, title: "Garden", sub: "Roses and vines grow from every word" },
     { label: "Fisheye", key: "style", patch: { style: "fisheye", background: "auto" }, title: "Fisheye", sub: "A rolling 3D word drum" },
     { label: "Codestyle", key: "style", patch: { style: "codestyle", background: "auto" }, title: "Codestyle", sub: "Lyrics typed as code" },
+    { label: "Texting", key: "style", patch: { style: "chat", background: "auto" }, title: "Texting", sub: "Lyrics as a text conversation" },
   ],
   [
     { label: "Night sky", key: "background", patch: { background: "sky" }, title: "Night sky", sub: "A slowly turning sky, tinted by the album" },

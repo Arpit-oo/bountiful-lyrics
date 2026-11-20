@@ -1,12 +1,12 @@
 import { isHexColor } from "./color";
 
-export const STYLE_IDS = ["constellation", "garden", "fisheye", "codestyle"] as const;
+export const STYLE_IDS = ["constellation", "garden", "fisheye", "codestyle", "chat"] as const;
 export type StyleId = (typeof STYLE_IDS)[number];
 
-export const FONT_IDS = ["jakarta", "dm", "serif", "bagel", "shrikhand", "marker", "anton", "fredoka", "gluten", "mono"] as const;
+export const FONT_IDS = ["jakarta", "dm", "serif", "bagel", "shrikhand", "marker", "anton", "fredoka", "gluten", "samarkan", "electro", "mono"] as const;
 export type FontId = (typeof FONT_IDS)[number];
 
-export const BACKGROUND_IDS = ["auto", "gradient", "cinematic", "ambient", "art", "grain", "sky", "black"] as const;
+export const BACKGROUND_IDS = ["auto", "gradient", "cinematic", "ambient", "art", "raw", "grain", "sky", "black"] as const;
 export type BackgroundId = (typeof BACKGROUND_IDS)[number];
 
 export const DISPLAY_IDS = ["page", "fullscreen", "window"] as const;
@@ -46,6 +46,13 @@ export interface Settings {
   /** Colour of the moving light in Music Sync and Orbit. Auto takes a bright tint of the album. */
   glowLightAuto: boolean;
   glowLight: string;
+  /** Chat: your (right) and their (left) bubble colours. */
+  chatMeColor: string;
+  chatThemColor: string;
+  /** Chat: some lines arrive as shared-location cards. */
+  chatCards: boolean;
+  /** Chat: how much each word swirls in, 0 = plain fade. */
+  chatEffect: number;
   companion: boolean;
 }
 
@@ -73,6 +80,10 @@ export const DEFAULT_SETTINGS: Settings = {
   glowSecondary: "#ec4899",
   glowLightAuto: true,
   glowLight: "#ffffff",
+  chatMeColor: "#0a84ff",
+  chatThemColor: "#26252a",
+  chatCards: true,
+  chatEffect: 0.5,
   companion: true,
 };
 
@@ -115,6 +126,10 @@ export function sanitizeSettings(input: unknown): Settings {
     glowSecondary: color(v.glowSecondary, d.glowSecondary),
     glowLightAuto: bool(v.glowLightAuto, d.glowLightAuto),
     glowLight: color(v.glowLight, d.glowLight),
+    chatMeColor: color(v.chatMeColor, d.chatMeColor),
+    chatThemColor: color(v.chatThemColor, d.chatThemColor),
+    chatCards: bool(v.chatCards, d.chatCards),
+    chatEffect: clamp(v.chatEffect, 0, 1, d.chatEffect),
     companion: bool(v.companion, d.companion),
   };
 }

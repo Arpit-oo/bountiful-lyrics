@@ -368,7 +368,7 @@ class App {
     if (path && /^(INPUT|SELECT|TEXTAREA)$/.test(path.tagName) && e.key !== "Escape") return;
     if (this.root.querySelector(".bl-scrim")) return;
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-    const styles = ["constellation", "garden", "fisheye", "codestyle"] as const;
+    const styles = ["constellation", "garden", "fisheye", "codestyle", "chat"] as const;
     let used = true;
     if (key === "Escape") {
       if (document.fullscreenElement) void document.exitFullscreen();
@@ -381,10 +381,10 @@ class App {
       this.showLyrics = !this.showLyrics;
       this.renderView();
     } else if (key === "b") this.updateSettings({ background: this.settings.background === "art" ? "auto" : "art" });
-    else if (key >= "1" && key <= "4") {
+    else if (key >= "1" && key <= "5") {
       const style = styles[Number(key) - 1]!;
       this.updateSettings({ style });
-      this.showToast(style[0]!.toUpperCase() + style.slice(1));
+      this.showToast(style === "chat" ? "Texting" : style[0]!.toUpperCase() + style.slice(1));
     } else if ((key === "ArrowLeft" || key === "ArrowRight") && this.video) this.video.currentTime = Math.max(0, this.video.currentTime + (key === "ArrowLeft" ? -5 : 5));
     else if ((key === "ArrowUp" || key === "ArrowDown") && this.video) {
       this.video.volume = Math.min(1, Math.max(0, this.video.volume + (key === "ArrowUp" ? 0.05 : -0.05)));

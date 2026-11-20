@@ -4,6 +4,7 @@ import { Glow } from "./glow";
 import type { SyncedLyrics } from "./lyrics/model";
 import type { BackgroundId, Settings } from "./settings";
 import { NightSky } from "./sky";
+import { ChatRenderer } from "./styles/chat";
 import { CodestyleRenderer } from "./styles/codestyle";
 import { ConstellationRenderer } from "./styles/constellation";
 import { FisheyeRenderer } from "./styles/fisheye";
@@ -17,7 +18,7 @@ export interface StageLayers {
   transparent: boolean;
 }
 
-const RENDERERS = { codestyle: CodestyleRenderer, constellation: ConstellationRenderer, fisheye: FisheyeRenderer, garden: GardenRenderer };
+const RENDERERS = { chat: ChatRenderer, codestyle: CodestyleRenderer, constellation: ConstellationRenderer, fisheye: FisheyeRenderer, garden: GardenRenderer };
 
 type ResolvedBackground = Exclude<BackgroundId, "auto"> | "none";
 
@@ -26,6 +27,7 @@ export function resolveBackground(settings: Pick<Settings, "background" | "style
   if (transparent) return "none";
   if (settings.background !== "auto") return settings.background;
   if (settings.style === "garden") return "gradient";
+  if (settings.style === "chat") return "cinematic";
   return settings.style === "constellation" ? "black" : "ambient";
 }
 
@@ -108,7 +110,7 @@ export class Stage {
   private applyColors(): void {
     const { primary, secondary } = this.palette;
     const s = this.settings;
-    const onImage = ["art", "ambient", "cinematic", "gradient", "grain"].includes(this.background);
+    const onImage = ["art", "raw", "ambient", "cinematic", "gradient", "grain"].includes(this.background);
     const lyric = s.manualColors ? s.lyricColor : onImage ? "#ffffff" : this.background === "sky" ? "#f7f8ff" : mix(primary, "#ffffff", 0.55);
     const highlight = s.manualColors ? s.highlightColor : onImage || this.background === "sky" ? mix(primary, "#ffffff", 0.3) : mix(primary, "#ffffff", 0.12);
     const dim = s.manualColors ? s.secondaryColor : onImage ? "rgba(255,255,255,.66)" : this.background === "sky" ? mix(primary, "#c3c9e6", 0.6) : mix(primary, "#8a90a8", 0.55);
@@ -132,6 +134,18 @@ export class Stage {
     this.el.style.setProperty("--bl-grad-c", mix(secondary, "#000000", 0.82));
     this.el.style.setProperty("--bl-grain-base", mix(primary, "#0e0d0c", 0.8));
     this.el.style.setProperty("--bl-pulse", mix(primary, "#ffffff", 0.2));
+    // Chat bubbles: text goes white or black depending on how light the bubble is.
+    const ink = (hex: string) => {
+      const c = Number.parseInt(hex.slice(1), 16);
+      return 0.299 * ((c >> 16) & 255) + 0.587 * ((c >> 8) & 255) + 0.114 * (c & 255) > 165 ? "#111114" : "#ffffff";
+    };
+    this.el.style.setProperty("--bl-chat-me", s.chatMeColor);
+    this.el.style.setProperty("--bl-chat-me-ink", ink(s.chatMeColor));
+    this.el.style.setProperty("--bl-chat-them", s.chatThemColor);
+    this.el.style.setProperty("--bl-chat-them-ink", ink(s.chatThemColor));
+    this.el.style.setProperty("--bl-chat-card-title", ink(s.chatThemColor) === "#ffffff" ? "#f7ecc9" : "#2a2418");
+    this.el.dataset.chatCards = s.chatCards ? "1" : "0";
+    this.el.style.setProperty("--bl-chat-fx", String(s.chatEffect));
     if (this.layers.glow) this.glow.apply(s, primary, secondary);
     else this.glow.el.hidden = true;
   }

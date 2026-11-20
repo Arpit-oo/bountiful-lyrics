@@ -22,6 +22,11 @@ const STYLE_INFO: Record<Settings["style"], { name: string; blurb: string; art: 
     blurb: "Lyrics typed out as code",
     art: `<svg viewBox="0 0 120 70" font-family="Consolas,monospace" font-weight="700"><text x="60" y="22" font-size="8" text-anchor="middle" fill="currentColor" opacity=".4">i.got.that</text><text x="60" y="34" font-size="9" text-anchor="middle" fill="currentColor" opacity=".7">off(black, cadillac)</text><text x="54" y="50" font-size="11" text-anchor="middle" fill="currentColor">// midnight</text><rect x="92" y="41" width="6" height="11" fill="#ff3b4e"/></svg>`,
   },
+  chat: {
+    name: "Texting",
+    blurb: "Lyrics as a text conversation",
+    art: `<svg viewBox="0 0 120 70" font-weight="600"><rect x="12" y="8" width="56" height="15" rx="7.5" fill="#3a3940"/><text x="20" y="18.5" font-size="7.5" fill="#fff">hey, you up?</text><rect x="12" y="25" width="40" height="15" rx="7.5" fill="#3a3940"/><text x="20" y="35.5" font-size="7.5" fill="#fff">it's late</text><rect x="50" y="46" width="58" height="15" rx="7.5" fill="#0a84ff"/><text x="57" y="56.5" font-size="7.5" fill="#fff">on my way</text><g fill="#0a84ff" opacity=".55"><circle cx="92" cy="36" r="2"/><circle cx="99" cy="36" r="2"/><circle cx="106" cy="36" r="2"/></g></svg>`,
+  },
 };
 
 const BACKGROUND_INFO: Record<Settings["background"], { name: string; swatch: string }> = {
@@ -30,6 +35,7 @@ const BACKGROUND_INFO: Record<Settings["background"], { name: string; swatch: st
   cinematic: { name: "Cinematic blur", swatch: "radial-gradient(70% 70% at 45% 45%,#6b4a3a,#2a1d1a 60%,#060505)" },
   ambient: { name: "Ambient colours", swatch: "radial-gradient(50% 60% at 30% 40%,#3d5a8a,transparent 70%),radial-gradient(50% 60% at 70% 60%,#8a3d6a,transparent 70%),#151520" },
   art: { name: "Frosted art", swatch: "linear-gradient(160deg,rgba(255,255,255,.16),transparent 45%),radial-gradient(70% 70% at 40% 40%,#9a6a4a,#3a2a3a)" },
+  raw: { name: "Album cover", swatch: "linear-gradient(135deg,#e0a24a 0 30%,#c4423a 30% 55%,#2a3f7a 55% 80%,#f1e6cf 80%)" },
   grain: { name: "Film grain", swatch: "repeating-radial-gradient(circle at 30% 30%,rgba(255,255,255,.08) 0 1px,transparent 1px 3px),#2a2420" },
   sky: { name: "Night sky", swatch: "radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 60% 20%,#fff,transparent),radial-gradient(1.5px 1.5px at 80% 60%,#fff,transparent),radial-gradient(1px 1px at 35% 70%,#fff,transparent),linear-gradient(#05060c,#0d1020)" },
   black: { name: "Black", swatch: "#000" },
@@ -407,6 +413,21 @@ export function openSettings(host: HTMLElement, settings: Settings, onChange: Ch
     if (s.style === "fisheye" || s.style === "codestyle") {
       parts.push(section("Lens", row("Tilt", slider(0, 1, 0.05, s.tilt, (v) => (v === 0 ? "Off" : `${Math.round(v * 100)}%`), "Tilt", (tilt) => set({ tilt })), "Each lyric leans and bends a little, like a real lens")));
     }
+    if (s.style === "chat") {
+      const resetChat = h("button", "bl-btn bl-btn-quiet", "Use default colours");
+      resetChat.type = "button";
+      resetChat.addEventListener("click", () => set({ chatMeColor: DEFAULT_SETTINGS.chatMeColor, chatThemColor: DEFAULT_SETTINGS.chatThemColor }, true));
+      parts.push(
+        section(
+          "Texting",
+          row("Your bubbles", colorWheel(s.chatMeColor, "Your bubbles", (chatMeColor) => set({ chatMeColor })), "Messages on the right"),
+          row("Their bubbles", colorWheel(s.chatThemColor, "Their bubbles", (chatThemColor) => set({ chatThemColor })), "Messages on the left"),
+          row("Effect strength", slider(0, 1, 0.05, s.chatEffect, (v) => (v === 0 ? "Off" : `${Math.round(v * 100)}%`), "Effect strength", (chatEffect) => set({ chatEffect })), "How much each word swirls in as it's sung"),
+          row("Location cards", toggle(s.chatCards, "Location cards", (chatCards) => set({ chatCards })), "Some lines arrive as a shared map location"),
+          row("Bubble colours", resetChat, "Back to blue and dark grey"),
+        ),
+      );
+    }
     parts.push(section("Font", fonts));
     return parts;
   };
@@ -477,7 +498,7 @@ export function openSettings(host: HTMLElement, settings: Settings, onChange: Ch
     const keys = h("dl", "bl-keys");
     for (const [k, v] of [
       ["S", "Settings"],
-      ["1 – 4", "Constellation · Garden · Fisheye · Codestyle"],
+      ["1 – 5", "Constellation · Garden · Fisheye · Codestyle · Texting"],
       ["L", "Show or hide lyrics"],
       ["B", "Album art background on or off"],
       ["G", "Next glow animation"],

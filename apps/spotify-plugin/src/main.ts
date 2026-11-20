@@ -380,10 +380,11 @@ class App {
       case "1":
       case "2":
       case "3":
-      case "4": {
+      case "4":
+      case "5": {
         const style = STYLE_IDS[Number(key) - 1]!;
         this.updateSettings({ style });
-        this.showToast(style[0]!.toUpperCase() + style.slice(1));
+        this.showToast(style === "chat" ? "Texting" : style[0]!.toUpperCase() + style.slice(1));
         return true;
       }
       case "ArrowLeft":

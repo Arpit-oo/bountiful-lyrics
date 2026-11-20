@@ -134,12 +134,13 @@ Styles:
 - **Garden**: lines are typed in a serif while roses (album colour) and vines (its complement) grow out of every word.
 - **Fisheye**: a rolling 3D drum of words with icons and accent chips.
 - **Codestyle**: lyrics typed as code.
+- **Texting**: lyrics play out as a text conversation. Blue and grey bubbles in runs of two or three, typing dots in the gaps, and the odd shared-location card. Bubble colours are adjustable.
 
 Backgrounds: Match style, Atmospheric gradient (Garden's default), Cinematic blur, Ambient album colours, Frosted album art, Film grain, Night sky or Black. Backdrops lift softly on the beat. The cover/star button in the bottom bar flips between album art and the style's own backdrop.
 
 Edge glow: Music Sync (default) walks light around the screen edges on the beat, like a lit monitor bezel; Breathe, Drift and Still are calmer.
 
-Settings (gear icon) has tabs for Lyrics, Look, Colour, Edge glow and More: style cards, ten fonts (including bubbly, retro script, hand-drawn and tall poster faces), star and word size for Constellation, Tilt for Fisheye and Codestyle, colour wheels for manual colours.
+Settings (gear icon) has tabs for Lyrics, Look, Colour, Edge glow and More: style cards, ten fonts (including bubbly, retro script, hand-drawn and tall poster faces), star and word size for Constellation, Tilt for Fisheye and Codestyle, bubble colours for Texting, colour wheels for manual colours.
 
 Lyrics running early or late? Settings → Lyrics → Timing shifts the words by up to 1 second either way. Default is 0; the edge glow always stays on the beat.
 
@@ -169,7 +170,7 @@ Built copies are already in `release/`, so you can skip the build and load them 
 - **Chrome, Brave, Edge**: open `chrome://extensions` (or `brave://extensions`, `edge://extensions`), turn on Developer mode, Load unpacked, pick `release/youtube-music-chrome`.
 - **Firefox (121+)**: open `about:debugging#/runtime/this-firefox`, Load Temporary Add-on, pick `release/youtube-music-firefox/manifest.json`. Temporary add-ons last until Firefox restarts; a permanent install needs Mozilla signing.
 
-On music.youtube.com press Alt+L (or the star button) to open it, Esc to go back. Inside: Q up next, S settings, 1-4 styles, F fullscreen, Space, arrows, M.
+On music.youtube.com press Alt+L (or the star button) to open it, Esc to go back. Inside: Q up next, S settings, 1-5 styles, F fullscreen, Space, arrows, M.
 
 YouTube Music does not provide beat data, so the beat glow modes pulse at a calm tempo there.
 

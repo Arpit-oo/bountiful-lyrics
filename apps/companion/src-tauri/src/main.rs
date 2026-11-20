@@ -18,11 +18,12 @@ use tauri::{
     WebviewWindowBuilder, WindowEvent, Wry,
 };
 
-const STYLES: [(&str, &str); 4] = [
+const STYLES: [(&str, &str); 5] = [
     ("constellation", "Constellation"),
     ("garden", "Garden"),
     ("fisheye", "Fisheye"),
     ("codestyle", "Codestyle"),
+    ("chat", "Texting"),
 ];
 const FRAME_ORDER: [&str; 5] = ["track", "theme", "settings", "lyrics", "clock"];
 const IDLE_LABEL: &str = "idle";

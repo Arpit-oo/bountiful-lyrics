@@ -9,6 +9,9 @@ export const CORE_CSS = `
 .bl-stage[data-bg="art"] .bl-backdrop[data-ready="1"]{opacity:1}
 .bl-bg-glass{background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,0) 38%,rgba(0,0,0,.18)),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");mix-blend-mode:soft-light}
 .bl-stage[data-bg="art"] .bl-bg-glass{opacity:.55}
+/* Album cover: the art itself, sharp and full-bleed, with just enough shade at the edges to read text over. */
+.bl-stage[data-bg="raw"] .bl-backdrop[data-ready="1"]{opacity:1;filter:none;transform:none}
+.bl-stage[data-bg="raw"] .bl-bg-shade{background:radial-gradient(130% 100% at 50% 50%,rgba(0,0,0,0) 45%,rgba(0,0,0,.45))}
 /* Cinematic blur: the cover blown up, heavily blurred and pushed back with a deep vignette. */
 .bl-stage[data-bg="cinematic"] .bl-backdrop[data-ready="1"]{opacity:1;filter:blur(64px) saturate(1.3) brightness(.46);transform:scale(1.35)}
 .bl-stage[data-bg="cinematic"] .bl-bg-shade{background:radial-gradient(110% 85% at 50% 48%,rgba(0,0,0,.05) 25%,rgba(0,0,0,.72) 100%)}
@@ -33,7 +36,7 @@ export const CORE_CSS = `
 @keyframes bl-drift{from{transform:rotate(0) scale(1.1)}50%{transform:rotate(180deg) scale(1.3)}to{transform:rotate(360deg) scale(1.1)}}
 @keyframes bl-drift-b{from{transform:rotate(360deg) scale(1.25) translate(4%,2%)}50%{transform:rotate(180deg) scale(1.05) translate(-3%,-2%)}to{transform:rotate(0) scale(1.25) translate(4%,2%)}}
 .bl-lyrics{position:absolute;inset:0}
-.bl-stage[data-bg="art"] .bl-lyrics,.bl-stage[data-bg="ambient"] .bl-lyrics,.bl-stage[data-bg="cinematic"] .bl-lyrics{text-shadow:0 2px 24px rgba(0,0,0,.45)}
+.bl-stage[data-bg="art"] .bl-lyrics,.bl-stage[data-bg="raw"] .bl-lyrics,.bl-stage[data-bg="ambient"] .bl-lyrics,.bl-stage[data-bg="cinematic"] .bl-lyrics{text-shadow:0 2px 24px rgba(0,0,0,.45)}
 
 /* Codestyle */
 .bl-code{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.42em;font-family:"BL Mono",Consolas,monospace;font-size:calc(var(--bl-size)*.4);font-weight:700;padding:0 6vw;text-align:center;letter-spacing:-.01em}
@@ -47,6 +50,50 @@ export const CORE_CSS = `
 .bl-cursor{display:inline-block;width:.56em;height:1.08em;margin-left:.08em;vertical-align:-.17em;background:#ff3b4e;box-shadow:0 0 14px #ff3b4e,0 0 2px #ff8a96}
 .bl-cursor-idle{animation:bl-blink 1.05s steps(1) infinite}
 @keyframes bl-blink{50%{opacity:0}}
+
+/* Chat */
+.bl-chat{position:absolute;inset:0;overflow:hidden;font-size:calc(var(--bl-size)*.25);-webkit-mask-image:linear-gradient(to bottom,transparent 4%,#000 42%);mask-image:linear-gradient(to bottom,transparent 4%,#000 42%)}
+.bl-chat-drift{position:absolute;inset:0;animation:bl-chat-float 9s ease-in-out infinite alternate}
+@keyframes bl-chat-float{from{transform:translateY(.12em)}to{transform:translateY(-.12em)}}
+.bl-chat-thread{position:absolute;left:0;right:0;bottom:30%;margin:0 auto;width:min(92cqw,24em);display:flex;flex-direction:column;gap:.16em;will-change:transform}
+.bl-chat-msg{display:flex;flex-direction:column;align-items:flex-start;transform-origin:0 100%;--c:var(--bl-chat-them);--ink:var(--bl-chat-them-ink)}
+.bl-chat-msg[data-side="me"]{align-items:flex-end;transform-origin:100% 100%;--c:var(--bl-chat-me);--ink:var(--bl-chat-me-ink)}
+.bl-chat-msg[data-pos="single"],.bl-chat-msg[data-pos="first"]{margin-top:.42em}
+.bl-chat-bubble{position:relative;box-sizing:border-box;max-width:80%;padding:.36em .72em .4em;border-radius:.95em;background:color-mix(in srgb,var(--c) 92%,transparent);color:var(--ink);font-weight:520;line-height:1.28;letter-spacing:-.005em;overflow-wrap:anywhere;-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 .3em 1.2em rgba(0,0,0,.28);text-shadow:none}
+.bl-chat-msg[data-side="them"][data-pos="first"] .bl-chat-bubble,.bl-chat-msg[data-side="them"][data-pos="mid"] .bl-chat-bubble{border-bottom-left-radius:.3em}
+.bl-chat-msg[data-side="them"][data-pos="mid"] .bl-chat-bubble,.bl-chat-msg[data-side="them"][data-pos="last"] .bl-chat-bubble{border-top-left-radius:.3em}
+.bl-chat-msg[data-side="me"][data-pos="first"] .bl-chat-bubble,.bl-chat-msg[data-side="me"][data-pos="mid"] .bl-chat-bubble{border-bottom-right-radius:.3em}
+.bl-chat-msg[data-side="me"][data-pos="mid"] .bl-chat-bubble,.bl-chat-msg[data-side="me"][data-pos="last"] .bl-chat-bubble{border-top-right-radius:.3em}
+.bl-chat-msg[data-pos="single"] .bl-chat-bubble:not(.bl-chat-card)::after,.bl-chat-msg[data-pos="last"] .bl-chat-bubble:not(.bl-chat-card)::after{content:"";position:absolute;bottom:0;left:-.3em;width:.8em;height:.8em;background:inherit;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 0C8 9 5 16 0 20c7 0 13-2 18-6V0z'/%3E%3C/svg%3E") no-repeat 0 0/100% 100%;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 0C8 9 5 16 0 20c7 0 13-2 18-6V0z'/%3E%3C/svg%3E") no-repeat 0 0/100% 100%;-webkit-backdrop-filter:none;backdrop-filter:none}
+.bl-chat-msg[data-side="me"] .bl-chat-bubble:not(.bl-chat-card)::after{left:auto;right:-.3em;transform:scaleX(-1)}
+.bl-chat-w{display:inline-block;white-space:pre-wrap}
+.bl-chat-w[hidden]{display:none}
+.bl-chat-emote{font-weight:760;white-space:nowrap}
+.bl-chat-card{padding:0;overflow:hidden;min-width:9em;width:max-content;max-width:min(80%,15em)}
+.bl-chat-map{position:relative;height:3.1em;overflow:hidden}
+.bl-chat-map svg{display:block;width:100%;height:100%}
+.bl-chat-map-label{position:absolute;left:.55em;bottom:.3em;display:flex;align-items:center;gap:.15em;font-size:.48em;font-weight:700;color:rgba(255,255,255,.85)}
+.bl-chat-map-label svg{width:1em;height:1em;fill:currentColor}
+.bl-chat-card-body{padding:.38em .72em .46em}
+.bl-chat-card-title{font-weight:780;color:var(--bl-chat-card-title);line-height:1.22}
+.bl-chat-card-place{display:flex;align-items:center;gap:.3em;margin-top:.18em;font-size:.6em;font-weight:560;color:color-mix(in srgb,var(--ink) 62%,transparent)}
+.bl-chat-card-place svg{width:.95em;height:.95em;fill:currentColor;flex:none}
+/* Location cards off: card lines become plain bubbles. */
+.bl-stage[data-chat-cards="0"] .bl-chat-map,.bl-stage[data-chat-cards="0"] .bl-chat-card-place{display:none}
+.bl-stage[data-chat-cards="0"] .bl-chat-card{padding:.36em .72em .4em;min-width:0;width:auto;max-width:80%}
+.bl-stage[data-chat-cards="0"] .bl-chat-card-body{padding:0}
+.bl-stage[data-chat-cards="0"] .bl-chat-card-title{font-weight:inherit;color:inherit;line-height:inherit}
+.bl-chat-stamp{align-self:center;margin:.2em 0 .5em;font-size:.5em;font-weight:500;color:var(--bl-secondary)}
+.bl-chat-stamp b{font-weight:700}
+.bl-chat-status{margin:.22em .3em 0;font-size:.48em;font-weight:600;color:var(--bl-secondary)}
+.bl-chat-typing .bl-chat-bubble{display:flex;gap:.2em;padding:.52em .7em;transform-origin:0 100%}
+.bl-chat-typing[data-side="me"] .bl-chat-bubble{transform-origin:100% 100%}
+.bl-chat-typing{margin-top:.42em}
+.bl-chat-typing i{width:.34em;height:.34em;border-radius:50%;background:color-mix(in srgb,var(--ink) 60%,transparent);animation:bl-chat-dot 1.2s ease-in-out infinite}
+.bl-chat-typing i:nth-child(2){animation-delay:.18s}
+.bl-chat-typing i:nth-child(3){animation-delay:.36s}
+@media (prefers-reduced-motion:reduce){.bl-chat-drift{animation:none}}
+@keyframes bl-chat-dot{0%,60%,100%{opacity:.4;transform:translateY(0)}30%{opacity:1;transform:translateY(-.14em)}}
 
 /* Constellation */
 .bl-stars{position:absolute;inset:0}
