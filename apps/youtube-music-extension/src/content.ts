@@ -1,8 +1,10 @@
 /// <reference types="chrome" />
 import {
+  assignSingers,
   buildSyncedLyrics,
   CORE_CSS,
   FALLBACK_PALETTE,
+  fetchGeniusSections,
   FONT_CSS,
   openSettings,
   OVERLAY_CSS,
@@ -149,6 +151,7 @@ class App {
   private lyrics: Lyrics | null = null;
   private palette: Palette = FALLBACK_PALETTE;
   private trackKey: string | null = null;
+  private currentTrack: PageTrack | null = null;
   private loadToken = 0;
   private showLyrics = true;
   private isOpen = false;
@@ -258,6 +261,8 @@ class App {
       this.settings = sanitizeSettings(stored[STORAGE_KEY]);
       this.stage.applySettings(this.settings);
       this.stage.setBeats([]);
+      // Settings can land after the first song loaded; pick up singers now that the token is known.
+      if (this.currentTrack) void this.loadSingers(this.currentTrack, this.loadToken);
     });
 
     setInterval(() => this.poll(), POLL_MS);
@@ -269,6 +274,23 @@ class App {
     void chrome.storage.local.set({ [STORAGE_KEY]: this.settings });
     this.stage.applySettings(this.settings);
     this.stage.setBeats([]);
+    if (patch.geniusToken !== undefined && this.currentTrack) void this.loadSingers(this.currentTrack, this.loadToken);
+  }
+
+  /**
+   * Who sings which line, from Genius. Only runs with the user's own token, and only reaches
+   * api.genius.com and genius.com, which both allow cross-site requests. Arrives after the lyrics.
+   */
+  private async loadSingers(track: PageTrack, token: number): Promise<void> {
+    const key = this.settings.geniusToken;
+    const lyrics = this.lyrics;
+    if (!key || lyrics?.kind !== "synced") {
+      if (!key) this.stage.setSingers(null);
+      return;
+    }
+    const sections = await fetchGeniusSections(track.title, track.artist, key);
+    if (token !== this.loadToken || this.lyrics !== lyrics) return;
+    this.stage.setSingers(sections ? assignSingers(lyrics.lines, sections, track.artist) : null);
   }
 
   private openSettings(): void {
@@ -455,6 +477,7 @@ class App {
 
   private async load(track: PageTrack): Promise<void> {
     this.trackKey = track.key;
+    this.currentTrack = track.isAd ? null : track;
     const token = ++this.loadToken;
     this.forceSync();
     this.titleEl.textContent = track.title;
@@ -483,6 +506,7 @@ class App {
     this.palette = palette ?? FALLBACK_PALETTE;
     this.stage.setPalette(this.palette);
     this.stage.setLyrics(lyrics?.kind === "synced" ? lyrics : null);
+    if (lyrics?.kind === "synced") void this.loadSingers(track, token);
     this.statusEl.textContent = lyrics ? "" : "No lyrics found for this track";
     this.renderPlain();
     this.renderView();
