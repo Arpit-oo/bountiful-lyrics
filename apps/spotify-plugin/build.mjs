@@ -8,7 +8,7 @@ await esbuild.build({
   target: "chrome120",
   charset: "utf8",
   legalComments: "none",
-  loader: { ".woff2": "dataurl", ".ttf": "dataurl", ".otf": "dataurl" },
+  loader: { ".woff2": "dataurl", ".ttf": "dataurl", ".otf": "dataurl", ".webp": "dataurl" },
   outfile: "dist/bountiful-lyrics.js",
 });
 console.log("built dist/bountiful-lyrics.js");

@@ -3,7 +3,7 @@ import { isHexColor } from "./color";
 export const STYLE_IDS = ["constellation", "garden", "fisheye", "codestyle", "chat"] as const;
 export type StyleId = (typeof STYLE_IDS)[number];
 
-export const FONT_IDS = ["jakarta", "dm", "serif", "bagel", "shrikhand", "marker", "anton", "fredoka", "gluten", "samarkan", "electro", "mono"] as const;
+export const FONT_IDS = ["jakarta", "dm", "serif", "bagel", "shrikhand", "marker", "anton", "fredoka", "gluten", "samarkan", "electro", "bethellen", "chatfavour", "didoska", "mono"] as const;
 export type FontId = (typeof FONT_IDS)[number];
 
 export const BACKGROUND_IDS = ["auto", "gradient", "cinematic", "ambient", "art", "raw", "grain", "sky", "black"] as const;
@@ -53,6 +53,12 @@ export interface Settings {
   chatCards: boolean;
   /** Chat: how much each word swirls in, 0 = plain fade. */
   chatEffect: number;
+  /** Chat: big stickers on words like "home" or "car". */
+  chatStickers: boolean;
+  /** Chat: iMessage tapback reactions on some bubbles. */
+  chatReactions: boolean;
+  /** Chat: text emoticons like :) at the end of some messages. */
+  chatEmotes: boolean;
   companion: boolean;
 }
 
@@ -84,6 +90,9 @@ export const DEFAULT_SETTINGS: Settings = {
   chatThemColor: "#26252a",
   chatCards: true,
   chatEffect: 0.5,
+  chatStickers: true,
+  chatReactions: true,
+  chatEmotes: true,
   companion: true,
 };
 
@@ -130,6 +139,9 @@ export function sanitizeSettings(input: unknown): Settings {
     chatThemColor: color(v.chatThemColor, d.chatThemColor),
     chatCards: bool(v.chatCards, d.chatCards),
     chatEffect: clamp(v.chatEffect, 0, 1, d.chatEffect),
+    chatStickers: bool(v.chatStickers, d.chatStickers),
+    chatReactions: bool(v.chatReactions, d.chatReactions),
+    chatEmotes: bool(v.chatEmotes, d.chatEmotes),
     companion: bool(v.companion, d.companion),
   };
 }

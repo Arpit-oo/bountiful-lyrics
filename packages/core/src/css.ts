@@ -79,6 +79,41 @@ export const CORE_CSS = `
 .bl-chat-card-place{display:flex;align-items:center;gap:.3em;margin-top:.18em;font-size:.6em;font-weight:560;color:color-mix(in srgb,var(--ink) 62%,transparent)}
 .bl-chat-card-place svg{width:.95em;height:.95em;fill:currentColor;flex:none}
 /* Location cards off: card lines become plain bubbles. */
+.bl-stage:not([data-chat-reactions="0"]) .bl-chat-msg.bl-chat-has-tap{margin-top:.62em}
+.bl-stage:not([data-chat-stickers="0"]) .bl-chat-msg.bl-chat-has-peel{margin-top:1.15em}
+.bl-chat-sticker{pointer-events:none;z-index:2}
+.bl-chat-sticker[hidden],.bl-chat-tapback[hidden]{display:none}
+.bl-chat-sticker img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 .07em 0 #fff) drop-shadow(0 -.07em 0 #fff) drop-shadow(.07em 0 0 #fff) drop-shadow(-.07em 0 0 #fff) drop-shadow(0 .3em .45em rgba(0,0,0,.4))}
+.bl-chat-sticker[data-mode="peel"]{position:absolute;top:-1.45em;right:-2.6em;width:3em;height:3em;rotate:12deg}
+.bl-chat-msg[data-side="me"] .bl-chat-sticker[data-mode="peel"]{right:auto;left:-2.6em;rotate:-12deg}
+.bl-chat-sticker[data-mode="solo"]{width:4.4em;height:4.4em;margin:.3em .15em .05em;rotate:-6deg}
+.bl-chat-msg[data-side="me"] .bl-chat-sticker[data-mode="solo"]{rotate:6deg}
+.bl-chat-sticker img{animation:.9s ease-in-out .45s 1 both}
+.bl-chat-sticker[data-motion="beat"] img{animation-name:bl-st-beat;animation-duration:1.1s}
+.bl-chat-sticker[data-motion="flicker"] img{animation-name:bl-st-flicker;animation-duration:.7s;transform-origin:50% 100%}
+.bl-chat-sticker[data-motion="float"] img{animation-name:bl-st-float;animation-duration:1.6s}
+.bl-chat-sticker[data-motion="spin"] img{animation-name:bl-st-spin;animation-duration:1.1s;animation-timing-function:cubic-bezier(.3,.7,.3,1)}
+.bl-chat-sticker[data-motion="wiggle"] img{animation-name:bl-st-wiggle;animation-duration:1.8s}
+.bl-chat-sticker[data-motion="drive"] img{animation-name:bl-st-drive;animation-duration:1.6s}
+.bl-chat-sticker[data-motion="sway"] img{animation-name:bl-st-sway;animation-duration:1.5s;transform-origin:50% 95%}
+.bl-chat-sticker[data-motion="pulse"] img{animation-name:bl-st-pulse;animation-duration:1.6s}
+@keyframes bl-st-beat{0%,40%,100%{transform:scale(1)}15%{transform:scale(1.14)}28%{transform:scale(.98)}}
+@keyframes bl-st-flicker{0%,100%{transform:scale(1,1) skewX(0)}25%{transform:scale(.96,1.07) skewX(-3deg)}50%{transform:scale(1.03,.95) skewX(2deg)}75%{transform:scale(.98,1.04) skewX(-1deg)}}
+@keyframes bl-st-float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-.14em) rotate(3deg)}}
+@keyframes bl-st-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes bl-st-wiggle{0%,60%,100%{transform:rotate(0)}10%{transform:rotate(-9deg)}20%{transform:rotate(8deg)}30%{transform:rotate(-5deg)}40%{transform:rotate(3deg)}}
+@keyframes bl-st-drive{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(.08em) rotate(-2deg)}50%{transform:translateX(.16em) translateY(-.04em)}75%{transform:translateX(.06em) rotate(1.5deg)}}
+@keyframes bl-st-sway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@keyframes bl-st-pulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.08);filter:brightness(1.18)}}
+.bl-chat-tapback{position:absolute;top:-1em;right:-.8em;z-index:2;display:grid;place-items:center;width:1.75em;height:1.75em;border-radius:50%;background:var(--bl-chat-me);color:var(--bl-chat-me-ink);box-shadow:0 0 0 .1em rgba(0,0,0,.55),0 .2em .5em rgba(0,0,0,.3)}
+.bl-chat-tapback::after{content:"";position:absolute;right:.02em;bottom:-.08em;width:.42em;height:.42em;border-radius:50%;background:inherit;box-shadow:.22em .26em 0 -.1em var(--bl-chat-me)}
+.bl-chat-tapback svg{width:.95em;height:.95em}
+.bl-chat-tapback[data-kind="heart"]{color:#ff4f79}
+.bl-chat-msg[data-side="me"] .bl-chat-tapback{right:auto;left:-.8em;background:var(--bl-chat-them);color:var(--bl-chat-them-ink)}
+.bl-chat-msg[data-side="me"] .bl-chat-tapback::after{right:auto;left:.02em;box-shadow:-.22em .26em 0 -.1em var(--bl-chat-them)}
+.bl-chat-msg[data-side="me"] .bl-chat-tapback[data-kind="heart"]{color:#ff4f79}
+.bl-stage[data-chat-stickers="0"] .bl-chat-sticker,.bl-stage[data-chat-reactions="0"] .bl-chat-tapback,.bl-stage[data-chat-emotes="0"] .bl-chat-emote{display:none}
+@media (prefers-reduced-motion:reduce){.bl-chat-sticker img{animation:none}}
 .bl-stage[data-chat-cards="0"] .bl-chat-map,.bl-stage[data-chat-cards="0"] .bl-chat-card-place{display:none}
 .bl-stage[data-chat-cards="0"] .bl-chat-card{padding:.36em .72em .4em;min-width:0;width:auto;max-width:80%}
 .bl-stage[data-chat-cards="0"] .bl-chat-card-body{padding:0}

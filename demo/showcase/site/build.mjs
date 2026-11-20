@@ -11,7 +11,7 @@ await esbuild.build({
   minify: true,
   format: "iife",
   target: "chrome120",
-  loader: { ".woff2": "dataurl", ".ttf": "dataurl", ".otf": "dataurl" },
+  loader: { ".woff2": "dataurl", ".ttf": "dataurl", ".otf": "dataurl", ".webp": "dataurl" },
   nodePaths: [join(here, "../../../node_modules")],
 });
 console.log("built demo/showcase/site/main.js");

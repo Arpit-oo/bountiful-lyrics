@@ -10,6 +10,9 @@ import mono from "@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin
 import jakarta from "@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2";
 import electro from "../assets/fonts/electroharmonix.otf";
 import samarkan from "../assets/fonts/samarkan.ttf";
+import bethellen from "../assets/fonts/bethellen.ttf";
+import chatfavour from "../assets/fonts/chatfavour.otf";
+import didoska from "../assets/fonts/didoska.ttf";
 import type { FontId } from "./settings";
 
 // Single-weight display faces also claim the full weight range, so the browser uses them as drawn
@@ -30,6 +33,9 @@ export const FONT_CSS = [
   face("BL Gluten", gluten),
   face("BL Samarkan", samarkan, "truetype"),
   face("BL Electro", electro, "opentype"),
+  face("BL Beth Ellen", bethellen, "truetype"),
+  face("BL Chat Favour", chatfavour, "opentype"),
+  face("BL Didoska", didoska, "truetype"),
 ].join("");
 
 export const FONT_STACKS: Record<FontId, string> = {
@@ -44,6 +50,9 @@ export const FONT_STACKS: Record<FontId, string> = {
   gluten: `"BL Gluten", "BL Jakarta", sans-serif`,
   samarkan: `"BL Samarkan", "BL Jakarta", sans-serif`,
   electro: `"BL Electro", "BL Jakarta", sans-serif`,
+  bethellen: `"BL Beth Ellen", "BL Jakarta", cursive`,
+  chatfavour: `"BL Chat Favour", "BL Jakarta", sans-serif`,
+  didoska: `"BL Didoska", "BL Serif", serif`,
   mono: `"BL Mono", Consolas, monospace`,
 };
 
@@ -59,5 +68,8 @@ export const FONT_LABELS: Record<FontId, string> = {
   gluten: "Gluten (playful)",
   samarkan: "Samarkan (Devanagari-style)",
   electro: "Electroharmonix (sci-fi)",
+  bethellen: "Beth Ellen (handwritten)",
+  chatfavour: "Chat Favour (display)",
+  didoska: "Didoska (elegant)",
   mono: "JetBrains Mono",
 };

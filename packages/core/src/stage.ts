@@ -145,6 +145,9 @@ export class Stage {
     this.el.style.setProperty("--bl-chat-them-ink", ink(s.chatThemColor));
     this.el.style.setProperty("--bl-chat-card-title", ink(s.chatThemColor) === "#ffffff" ? "#f7ecc9" : "#2a2418");
     this.el.dataset.chatCards = s.chatCards ? "1" : "0";
+    this.el.dataset.chatStickers = s.chatStickers ? "1" : "0";
+    this.el.dataset.chatReactions = s.chatReactions ? "1" : "0";
+    this.el.dataset.chatEmotes = s.chatEmotes ? "1" : "0";
     this.el.style.setProperty("--bl-chat-fx", String(s.chatEffect));
     if (this.layers.glow) this.glow.apply(s, primary, secondary);
     else this.glow.el.hidden = true;

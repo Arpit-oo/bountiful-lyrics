@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SETTINGS, sanitizeSettings } from "../src/settings";
 import { planChat, PLACES } from "../src/styles/chat";
+import { findSticker, STICKERS } from "../src/styles/stickers";
 
 const song = (n: number, gapMs = 3000) =>
   Array.from({ length: n }, (_, i) => ({ text: `line number ${i}`, startMs: i * gapMs, endMs: i * gapMs + gapMs - 400 }));
@@ -86,5 +87,67 @@ describe("chat settings", () => {
     expect(s.chatEffect).toBe(DEFAULT_SETTINGS.chatEffect);
     expect(sanitizeSettings({ chatEffect: 4 }).chatEffect).toBe(1);
     expect(sanitizeSettings({ chatEffect: 0 }).chatEffect).toBe(0);
+  });
+});
+
+describe("planChat stickers and tapbacks", () => {
+  const words = (text: string) => text.split(" ").map((t) => ({ text: t }));
+  const lyric = ["driving home tonight in my car", "the roses on the table", "nothing much happening here", "why do you call me", "I love you so"];
+  const lines = song(90).map((l, i) => {
+    const text = lyric[i % lyric.length]!;
+    return { ...l, text, words: words(text) };
+  });
+
+  it("picks stickers from words, spaced out and never on cards", () => {
+    const plan = planChat(lines, 5);
+    const at = plan.map((s, i) => (s?.sticker ? i : -1)).filter((i) => i >= 0);
+    expect(at.length).toBeGreaterThan(5);
+    for (let k = 1; k < at.length; k++) expect(at[k]! - at[k - 1]!).toBeGreaterThanOrEqual(4);
+    for (const i of at) {
+      const slot = plan[i]!;
+      expect(slot.card).toBeNull();
+      const def = STICKERS[slot.sticker!.id]!;
+      // The trigger word really calls up that sticker.
+      expect(def.words).toContain(lines[i]!.words[slot.sticker!.word]!.text.toLowerCase());
+    }
+    // Not the same sticker twice in a row.
+    for (let k = 1; k < at.length; k++) expect(plan[at[k]!]!.sticker!.id).not.toBe(plan[at[k - 1]!]!.sticker!.id);
+  });
+
+  it("finds the first matching word", () => {
+    expect(findSticker(["Take", "me", "home,", "country", "roads"])).toEqual({ sticker: STICKERS.findIndex((s) => s.id === "house"), word: 2 });
+    expect(findSticker(["nothing", "here"])).toBeNull();
+  });
+
+  it("adds tapbacks that fit the line, never with a corner sticker", () => {
+    const plan = planChat(lines, 8);
+    const taps = plan.map((s, i) => (s?.tapback ? i : -1)).filter((i) => i >= 0);
+    expect(taps.length).toBeGreaterThan(4);
+    for (const i of taps) {
+      expect(plan[i]!.card).toBeNull();
+      expect(plan[i]!.sticker?.mode).not.toBe("peel");
+      if (lines[i]!.text.startsWith("why")) expect(plan[i]!.tapback).toBe("ask");
+    }
+  });
+
+  it("has a sticker toggle that defaults on", () => {
+    expect(DEFAULT_SETTINGS.chatStickers).toBe(true);
+    expect(sanitizeSettings({ chatStickers: false }).chatStickers).toBe(false);
+    expect(sanitizeSettings({ chatStickers: "x" }).chatStickers).toBe(true);
+  });
+});
+
+describe("chat toggles", () => {
+  it("keeps reactions and emoticons on by default and lets them be turned off", () => {
+    expect(DEFAULT_SETTINGS.chatReactions).toBe(true);
+    expect(DEFAULT_SETTINGS.chatEmotes).toBe(true);
+    const s = sanitizeSettings({ chatReactions: false, chatEmotes: false, chatStickers: false });
+    expect([s.chatReactions, s.chatEmotes, s.chatStickers]).toEqual([false, false, false]);
+  });
+
+  it("has stickers for weapons, nature and places", () => {
+    for (const word of ["shotgun", "gun", "sword", "sun", "planet", "ocean", "road", "mountain", "tree", "plants"]) {
+      expect(findSticker([word]), word).not.toBeNull();
+    }
   });
 });

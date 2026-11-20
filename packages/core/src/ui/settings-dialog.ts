@@ -424,6 +424,9 @@ export function openSettings(host: HTMLElement, settings: Settings, onChange: Ch
           row("Their bubbles", colorWheel(s.chatThemColor, "Their bubbles", (chatThemColor) => set({ chatThemColor })), "Messages on the left"),
           row("Effect strength", slider(0, 1, 0.05, s.chatEffect, (v) => (v === 0 ? "Off" : `${Math.round(v * 100)}%`), "Effect strength", (chatEffect) => set({ chatEffect })), "How much each word swirls in as it's sung"),
           row("Location cards", toggle(s.chatCards, "Location cards", (chatCards) => set({ chatCards })), "Some lines arrive as a shared map location"),
+          row("Stickers", toggle(s.chatStickers, "Stickers", (chatStickers) => set({ chatStickers })), "Big stickers for words like home, car or rose"),
+          row("Reactions", toggle(s.chatReactions, "Reactions", (chatReactions) => set({ chatReactions })), "Hearts, likes, HA HA and !! on some bubbles"),
+          row("Text emoticons", toggle(s.chatEmotes, "Text emoticons", (chatEmotes) => set({ chatEmotes })), "Little :) and :( at the end of some messages"),
           row("Bubble colours", resetChat, "Back to blue and dark grey"),
         ),
       );
