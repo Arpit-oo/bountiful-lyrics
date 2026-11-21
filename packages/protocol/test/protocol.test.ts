@@ -68,3 +68,21 @@ describe("parseControl", () => {
     expect(parseControl(JSON.stringify({ type: "control", action: "settings", value: { style: "garden", evil: 1 } }))).toEqual({ type: "control", action: "settings", value: { style: "garden" } });
   });
 });
+
+describe("loudness and singers", () => {
+  it("accepts well-formed loudness slices and rejects junk", async () => {
+    const { parseMessage } = await import("../src/index");
+    const seg = { startMs: 0, endMs: 250, loudness: -6, bright: 40 };
+    expect(parseMessage(JSON.stringify({ type: "loudness", segments: [seg] }))).toEqual({ type: "loudness", segments: [seg] });
+    expect(parseMessage(JSON.stringify({ type: "loudness", segments: [{ ...seg, loudness: "loud" }] }))).toBeNull();
+    expect(parseMessage(JSON.stringify({ type: "loudness", segments: new Array(10001).fill(seg) }))).toBeNull();
+  });
+
+  it("accepts per-line singer lists, null lines and null", async () => {
+    const { parseMessage } = await import("../src/index");
+    expect(parseMessage(JSON.stringify({ type: "singers", singers: [["Diljit"], null, ["Diljit", "Simar"]] }))).toEqual({ type: "singers", singers: [["Diljit"], null, ["Diljit", "Simar"]] });
+    expect(parseMessage(JSON.stringify({ type: "singers", singers: null }))).toEqual({ type: "singers", singers: null });
+    expect(parseMessage(JSON.stringify({ type: "singers", singers: [[1]] }))).toBeNull();
+    expect(parseMessage(JSON.stringify({ type: "singers", singers: [["x".repeat(81)]] }))).toBeNull();
+  });
+});

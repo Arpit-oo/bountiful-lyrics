@@ -1,4 +1,4 @@
-import { assignSingers, CORE_CSS, type DisplayId, FALLBACK_PALETTE, fetchGeniusSections, FONT_CSS, GLOW_ANIMATIONS, type Lyrics, mix, openSettings, OVERLAY_CSS, type Palette, paletteFromPixels, PlaybackClock, sanitizeSettings, type Settings, Stage, STYLE_IDS } from "@bountiful/core";
+import { assignSingers, CORE_CSS, type DisplayId, FALLBACK_PALETTE, fetchGeniusSections, FONT_CSS, GLOW_ANIMATIONS, type LoudSegment, type Lyrics, mix, openSettings, OVERLAY_CSS, type Palette, paletteFromPixels, PlaybackClock, sanitizeSettings, type Settings, Stage, STYLE_IDS } from "@bountiful/core";
 import type { ControlMessage } from "@bountiful/protocol";
 import { CompanionLink } from "./companion";
 import { artUrlFor, loadAnalysis, loadLyrics, type TrackInfo } from "./providers";
@@ -137,6 +137,8 @@ class App {
   private palette: Palette = FALLBACK_PALETTE;
   private artUrl: string | null = null;
   private beats: number[] = [];
+  private loudness: LoudSegment[] = [];
+  private singers: Array<string[] | null> | null = null;
   private trackUri: string | null = null;
   private currentTrack: TrackInfo | null = null;
   private loadToken = 0;
@@ -406,12 +408,18 @@ class App {
     const key = this.settings.geniusToken;
     const lyrics = this.lyrics;
     if (!key || lyrics?.kind !== "synced") {
-      if (!key) this.stage.setSingers(null);
+      if (!key) this.setSingers(null);
       return;
     }
     const sections = await fetchGeniusSections(track.title, track.artist, key);
     if (token !== this.loadToken || this.lyrics !== lyrics) return;
-    this.stage.setSingers(sections ? assignSingers(lyrics.lines, sections, track.artist) : null);
+    this.setSingers(sections ? assignSingers(lyrics.lines, sections, track.artist) : null);
+  }
+
+  private setSingers(singers: Array<string[] | null> | null): void {
+    this.singers = singers;
+    this.stage.setSingers(singers);
+    this.companion.send({ type: "singers", singers });
   }
 
   private updateSettings(patch: Partial<Settings>): void {
@@ -610,6 +618,8 @@ class App {
     this.paintBgButton();
     this.lyrics = null;
     this.beats = [];
+    this.loudness = [];
+    this.singers = null;
     this.stage.setLyrics(null);
     this.stage.setBeats([]);
     this.stage.setLoudness([]);
@@ -630,6 +640,7 @@ class App {
     this.stage.setPalette(this.palette);
     this.root.style.setProperty("--bl-accent", this.palette.primary);
     this.stage.setBeats(beats);
+    this.loudness = analysis.loudness;
     this.stage.setLoudness(analysis.loudness);
     this.stage.setLyrics(this.lyrics?.kind === "synced" ? this.lyrics : null);
     if (this.lyrics?.kind === "synced") void this.loadSingers(track, token);
@@ -670,7 +681,9 @@ class App {
     }
     this.companion.send({ type: "theme", palette: this.palette });
     this.companion.send({ type: "settings", settings: { ...this.settings, geniusToken: "" } });
+    this.companion.send({ type: "loudness", segments: this.loudness });
     this.companion.send({ type: "lyrics", lyrics: this.lyrics?.kind === "synced" ? this.lyrics : null });
+    this.companion.send({ type: "singers", singers: this.singers });
     this.companion.send({ type: "clock", positionMs: this.clock.position(), playing: this.clock.isPlaying(), volume: Spicetify.Player.getVolume() });
   }
 

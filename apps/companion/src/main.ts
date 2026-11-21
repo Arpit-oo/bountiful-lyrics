@@ -235,9 +235,15 @@ function handle(message: CompanionMessage): void {
       stage.setArt(message.artUrl);
       stage.setBeats(beats);
       break;
+    case "loudness":
+      stage.setLoudness(message.segments);
+      break;
     case "lyrics":
       hasLyrics = !!message.lyrics;
       stage.setLyrics(message.lyrics);
+      break;
+    case "singers":
+      stage.setSingers(message.singers);
       break;
     case "clock":
       clock.sync(message.positionMs, message.playing, !message.playing);

@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, isHexColor, sanitizeSettings, type Line, type Palette, type Settings, type SyncedLyrics } from "@bountiful/core";
+import { DEFAULT_SETTINGS, isHexColor, sanitizeSettings, type Line, type LoudSegment, type Palette, type Settings, type SyncedLyrics } from "@bountiful/core";
 
 export const COMPANION_PORT = 39517;
 export const SPOTIFY_ORIGIN = "https://xpui.app.spotify.com";
@@ -8,11 +8,18 @@ const MAX_LINES = 2000;
 const MAX_WORDS_PER_LINE = 200;
 const MAX_BEATS = 4000;
 const MAX_TEXT = 500;
+const MAX_SEGMENTS = 10000;
+const MAX_SINGERS_PER_LINE = 8;
+const MAX_NAME = 80;
 
 export type CompanionMessage =
   | { type: "hello"; version: number }
   | { type: "track"; title: string; artist: string; durationMs: number; artUrl: string | null; beats: number[] }
   | { type: "lyrics"; lyrics: SyncedLyrics | null }
+  /** Loudness slices from Spotify's audio analysis, for shouted lines in Texting. Sent before lyrics. */
+  | { type: "loudness"; segments: LoudSegment[] }
+  /** Who sings each lyric line (from Genius), index-aligned with the lyrics. Sent after lyrics. */
+  | { type: "singers"; singers: Array<string[] | null> | null }
   | { type: "clock"; positionMs: number; playing: boolean; volume?: number }
   | { type: "theme"; palette: Palette }
   | { type: "settings"; settings: Settings }
@@ -52,6 +59,28 @@ function parseLyrics(v: unknown): SyncedLyrics | null | undefined {
   return { kind: "synced", source: v.source, lines };
 }
 
+function parseSegments(v: unknown): LoudSegment[] | null {
+  if (!Array.isArray(v) || v.length > MAX_SEGMENTS) return null;
+  const out: LoudSegment[] = [];
+  for (const g of v) {
+    if (!isObj(g) || !isNum(g.startMs) || !isNum(g.endMs) || !isNum(g.loudness) || !isNum(g.bright)) return null;
+    out.push({ startMs: g.startMs, endMs: g.endMs, loudness: g.loudness, bright: g.bright });
+  }
+  return out;
+}
+
+function parseSingers(v: unknown): Array<string[] | null> | null | undefined {
+  if (v === null) return null;
+  if (!Array.isArray(v) || v.length > MAX_LINES) return undefined;
+  const out: Array<string[] | null> = [];
+  for (const line of v) {
+    if (line === null) out.push(null);
+    else if (Array.isArray(line) && line.length <= MAX_SINGERS_PER_LINE && line.every((n) => typeof n === "string" && n.length <= MAX_NAME)) out.push(line as string[]);
+    else return undefined;
+  }
+  return out;
+}
+
 /** Validates an untrusted frame. Returns null for anything malformed. */
 export function parseMessage(raw: string): CompanionMessage | null {
   let v: unknown;
@@ -73,6 +102,14 @@ export function parseMessage(raw: string): CompanionMessage | null {
     case "lyrics": {
       const lyrics = parseLyrics(v.lyrics);
       return lyrics === undefined ? null : { type: "lyrics", lyrics };
+    }
+    case "loudness": {
+      const segments = parseSegments(v.segments);
+      return segments ? { type: "loudness", segments } : null;
+    }
+    case "singers": {
+      const singers = parseSingers(v.singers);
+      return singers === undefined ? null : { type: "singers", singers };
     }
     case "clock": {
       if (!isNum(v.positionMs) || typeof v.playing !== "boolean") return null;

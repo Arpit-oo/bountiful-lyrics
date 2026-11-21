@@ -25,7 +25,7 @@ const STYLES: [(&str, &str); 5] = [
     ("codestyle", "Codestyle"),
     ("chat", "Texting"),
 ];
-const FRAME_ORDER: [&str; 5] = ["track", "theme", "settings", "lyrics", "clock"];
+const FRAME_ORDER: [&str; 7] = ["track", "theme", "settings", "loudness", "lyrics", "singers", "clock"];
 const IDLE_LABEL: &str = "idle";
 const PLAYER_LABEL: &str = "player";
 
